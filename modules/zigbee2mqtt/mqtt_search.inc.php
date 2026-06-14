@@ -602,9 +602,9 @@ $out['GROUPS']=$ssql;
 
 if ($this->tab=='log2'){
 
-  $sql0='SELECT *  FROM zigbee2mqtt_log order by FIND DESC LIMIT 100';
-
-//debmes($sql0,'zigbee2mqtt');
+  // «Majorodmo Log»: живая лента активности из таблицы топиков (zigbee2mqtt_log у SLS пуст).
+  // Показываем последние изменения значений — без доп. хранения/нагрузки.
+  $sql0="SELECT TITLE, CONCAT(METRIKA, ' = ', LEFT(VALUE,200)) AS MESSAGE, METRIKA AS TYPE, UPDATED AS FIND FROM zigbee2mqtt WHERE METRIKA<>'' AND TITLE NOT LIKE '%/bridge/%' ORDER BY UPDATED DESC LIMIT 200";
 
 $ssql=SQLSelect($sql0);
 
