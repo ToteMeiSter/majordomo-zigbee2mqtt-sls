@@ -48,7 +48,7 @@
 
 <!-- <select name="source"  class="selectpicker show-tick form-control"> -->
 
-  <select class="form-control input-lg" name="source"  >        
+  <select class="form-control input-lg" name="source" id="z2m_source" onchange="z2mUpdEndpoints()" >
  [#begin SOURCE#]
 
 <option data-content="<img src='../templates/zigbee2mqtt/img/[#SELECTTYPE#].jpg' width='30' height='30'> [#TITLE#]" value="[#TITLE#]" >[#TITLE#]</option>
@@ -94,13 +94,30 @@
 </td>
 
 <td>
-  <select class="form-control input-lg" name="endpoint"  >
+  <select class="form-control input-lg" name="endpoint" id="z2m_endpoint" >
    [#begin ENDPOINT#]
-   <option value="[#TITLE#]">[#TITLE#] 
+   <option value="[#TITLE#]">[#TITLE#]
    [#end ENDPOINT#]
   </select>
 
 </td>
+<script type="text/javascript">
+// #2: эндпоинты (клавиши) подставляются под выбранный источник по его реальным свойствам протокола
+var z2mEndpoints = [#ENDPOINTJSON#];
+function z2mUpdEndpoints() {
+  var src = document.getElementById('z2m_source');
+  var sel = document.getElementById('z2m_endpoint');
+  if (!src || !sel) return;
+  var keys = (z2mEndpoints && z2mEndpoints[src.value]) ? z2mEndpoints[src.value] : ['Single'];
+  sel.innerHTML = '';
+  for (var i = 0; i < keys.length; i++) {
+    var o = document.createElement('option');
+    o.value = keys[i]; o.text = keys[i];
+    sel.appendChild(o);
+  }
+}
+document.addEventListener('DOMContentLoaded', z2mUpdEndpoints);
+</script>
 
 <td>
 <div class="form-actions">

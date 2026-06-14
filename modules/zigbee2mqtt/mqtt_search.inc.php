@@ -829,15 +829,26 @@ $out['BIND'] =  $res;
 
 $out['SOURCE'] =  $res;
 
+ // #2: карта "устройство -> его реальные клавиши/эндпоинты" (по фактическим свойствам протокола).
+ // ENDPOINT в форме подставляется динамически под выбранный источник (см. bind.html).
+ $emap = array();
+ $nsrc = count($res);
+ for ($si = 0; $si < $nsrc; $si++) {
+     $dt = $res[$si]['TITLE'];
+     $mr = SQLSelect("SELECT METRIKA FROM zigbee2mqtt WHERE DEV_ID='" . DBSafe($res[$si]['ID']) . "' AND METRIKA LIKE 'state%'");
+     $mm = array(); $nm = count($mr);
+     for ($mi = 0; $mi < $nm; $mi++) $mm[$mr[$mi]['METRIKA']] = 1;
+     $keys = array();
+     foreach (array('left' => 'state_left', 'center' => 'state_center', 'right' => 'state_right') as $lab => $mk) if (isset($mm[$mk])) $keys[] = $lab;
+     for ($n = 1; $n <= 8; $n++) if (isset($mm['state_l' . $n])) $keys[] = 'l' . $n;
+     for ($n = 1; $n <= 8; $n++) if (isset($mm['state_' . $n])) $keys[] = (string)$n;
+     if (empty($keys)) $keys[] = 'Single';
+     $emap[$dt] = $keys;
+ }
+ $out['ENDPOINTJSON'] = json_encode($emap);
 
-// #2: типы действий (single/double/triple/hold). Прим.: стандартный zigbee-bind
-// привязывает кластер вкл/выкл клавиши к цели независимо от типа нажатия;
-// double/triple/hold для разной реакции — это сценарии/автоматизация, не сам bind.
-$res=array();
-$res[]=array("TITLE"=>"single");
-$res[]=array("TITLE"=>"double");
-$res[]=array("TITLE"=>"triple");
-$res[]=array("TITLE"=>"hold");
+
+$res=array("TITLE"=>"Single");
 $out['KEY'] =  $res;
 
 
