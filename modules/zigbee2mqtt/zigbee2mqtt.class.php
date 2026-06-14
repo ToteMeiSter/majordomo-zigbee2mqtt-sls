@@ -1535,13 +1535,11 @@ else
         for ($i = 0; $i < $total; $i++) {
 
             $zz = explode('/', $query_list[$i])[0];
-            $sql = "select * from zigbee2mqtt where TITLE='$zz/bridge/config/permit_join'  ";
-            $permit = SQLSelectOne($sql);
-//debmes($sql, 'z2msql');
-
-//if $permit['VALUE']=
+            // Живое состояние сопряжения: SLS отдаёт <gw>/bridge/config/ZPermitJoin (0 = выкл, >0 = сек до конца)
+            $permit = SQLSelectOne("select VALUE from zigbee2mqtt where TITLE='$zz/bridge/config/ZPermitJoin' limit 1");
+            $pj = isset($permit['VALUE']) ? trim($permit['VALUE']) : '';
             $out['gwstatus'][$i]['PERMITNAME'] = $zz;
-            $out['gwstatus'][$i]['PERMITSTATUS'] = $permit['VALUE'];
+            $out['gwstatus'][$i]['PERMITSTATUS'] = (is_numeric($pj) && (int)$pj > 0) ? "1" : "0";
 
             // Онлайн-статус шлюза берём из <gw>/bridge/state (online/offline) + свежесть UPDATED.
             // SLS не публикует permit_join и не ведёт zigbee2mqtt_log, поэтому старый способ давал красный.

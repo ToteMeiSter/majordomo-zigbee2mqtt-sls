@@ -39,15 +39,15 @@ DATASOURCE: [#DATA_SOURCE#]
    [#begin gwstatus#]
 
 [#if SEEN2==1#]
-<!--  <span class="label label-success" title="Приложение [#PERMITNAME#] работает [#SEEN#]">статус [#PERMITNAME#]</span>-->
+<span class="label label-success" title="Шлюз [#PERMITNAME#] онлайн [#SEEN#]">статус [#PERMITNAME#]</span>
 	[#else#]
 		<span class="label label-danger" title="Приложение [#PERMITNAME#] не работает [#SEEN#]">статус [#PERMITNAME#]</span>
 	[#endif#]
 
 [#if PERMITSTATUS=="1"#]
-<span class="label label-success" title="Открыт для сопряжения">  <a href="?view_mode=stoppairing&gw=[#PERMITNAME#]"  title="Открыт для подключения новых устройств, нажатие переключит режим. " ><font color="white" >Сопряжение [#PERMITNAME#]</font></span></a>
+<a href="?view_mode=stoppairing&gw=[#PERMITNAME#]" title="Идёт сопряжение — нажмите, чтобы остановить"><span class="label label-success"><font color="white">&#9209; Остановить сопряжение [#PERMITNAME#]</font></span></a>
 	[#else#]
-<span class="label label-danger" title="Закрыт  для сопряжения">   <a href="?view_mode=startpairing&gw=[#PERMITNAME#]"  title="Закрыт  для покдлючения новых устройств, нажатие переключит режим." ><font color="white" >Сопряжение [#PERMITNAME#]</font></span></a>
+<a href="?view_mode=startpairing&gw=[#PERMITNAME#]" title="Сопряжение закрыто — нажмите, чтобы открыть для новых устройств"><span class="label label-danger"><font color="white">&#10133; Сопряжение [#PERMITNAME#]</font></span></a>
 	[#endif#]
 
 
