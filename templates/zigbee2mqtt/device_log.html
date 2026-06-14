@@ -1,17 +1,21 @@
 
-<table width=100% class="table">
-
+<style>
+#z2m-devlog td,#z2m-devlog th{word-break:break-word;vertical-align:top;font-size:13px;}
+#z2m-devlog td span{white-space:pre-wrap;word-break:break-word;}
+@media (max-width:768px){#z2m-devlog td,#z2m-devlog th{font-size:12px;padding:4px;}}
+</style>
+<div id="z2m-devlog" class="table-responsive">
+<table width=100% class="table table-striped">
+<thead>
 <tr>
  <th>TOPIC</th>
  <th><#LANG_DATA#></th>
  <th><#LANG_ADDED#></th>
-
-
 </tr>
 </thead>
 <tbody>
 [#begin LOG2#]
-
+<tr>
  <td>
 [#TITLE#]
  </td>
@@ -43,6 +47,7 @@
 [#end LOG2#]
 </tbody>
 </table>
+</div><!-- /#z2m-devlog -->
 <input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
 <input type="hidden" name="view_mode" value="multiple_mqtt">
 </form>

@@ -1,6 +1,22 @@
 <link rel="stylesheet" href="../templates/zigbee2mqtt/css/bootstrap-select.min.css">
 
-<table width=100% border=0>
+<style>
+/* привязки: аккуратная таблица, без горизонтального вылета на мобильном */
+#z2m-bind .table-responsive{border:0;margin-bottom:0;}
+#z2m-bind table{width:100%;border:0;}
+#z2m-bind th{font-size:12px;color:#888;font-weight:600;padding:4px 6px;white-space:nowrap;}
+#z2m-bind td{padding:4px 6px;vertical-align:middle;word-break:break-word;}
+#z2m-bind .form-control{font-size:13px;}
+/* «input-lg» из исходника на мобильном слишком крупный — приводим к обычному */
+@media (max-width:768px){
+  #z2m-bind .input-lg{height:36px;font-size:14px;padding:6px 10px;}
+  #z2m-bind th,#z2m-bind td{font-size:12px;padding:3px 4px;}
+}
+</style>
+
+<div id="z2m-bind">
+<div class="table-responsive">
+<table width=100% border=0 class="table">
 <tr>
 <th> Пульт</th>
 <th> Кнопка пульта</th>
@@ -134,6 +150,8 @@ document.addEventListener('DOMContentLoaded', z2mUpdEndpoints);
 
 </tr>
 </table>
+</div><!-- /.table-responsive -->
+</div><!-- /#z2m-bind -->
 
 </fieldset>
 </form>

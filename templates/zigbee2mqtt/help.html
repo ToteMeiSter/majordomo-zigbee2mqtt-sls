@@ -1,3 +1,13 @@
+<style>
+/* справка: контентные картинки и таблицы не вылезают за край экрана */
+#z2m-help img{max-width:100%;height:auto;}
+#z2m-help .table-responsive{border:0;}
+#z2m-help pre,#z2m-help code{white-space:pre-wrap;word-break:break-word;}
+@media (max-width:768px){
+  #z2m-help .panel-heading a{font-size:14px;}
+}
+</style>
+<div id="z2m-help">
 <br/>
 <div class="panel-group" id="accordion">
 	<div class="panel panel-info">
@@ -411,6 +421,7 @@ permit_join: true<br>
 <b><a href="https://www.zigbee2mqtt.io/information/supported_devices.html" target="_blank">Актуальный  список можно посмотреть на странице разработчика  </a><br></b>
 <br>
 
+<div class="table-responsive">
 <table   class="table table-stripped">
 <thead>
 <tr>
@@ -450,6 +461,7 @@ permit_join: true<br>
 [#end DEVICE_LIST#]
 </tbody>
 </table>
+</div><!-- /.table-responsive -->
 
 		</div> </div> </div>
 
@@ -779,11 +791,12 @@ MQTT MESSAGE PATH/VALUE - отправка произвольной команд
 
 		</div> </div> </div>
 
-                                                                                                         
-	
+
+
 </div>
 
 
-	
+
 </div>
+</div><!-- /#z2m-help -->
 

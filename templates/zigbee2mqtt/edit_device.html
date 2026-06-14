@@ -1,5 +1,20 @@
 <link rel="stylesheet" href="../templates/zigbee2mqtt/css/bootstrap-select.min.css">
 
+<style>
+/* компактная адаптивная вёрстка страницы Редактирования (scoped) */
+form[name="frmEdit"] .form-group{margin-bottom:6px;}
+form[name="frmEdit"] .control-label{font-size:12px;font-weight:600;color:#888;margin:0 0 1px;padding:0;display:block;text-align:left;}
+form[name="frmEdit"] .form-control{font-size:13px;}
+form[name="frmEdit"] table{width:100%;}
+form[name="frmEdit"] table td{display:block;width:100%!important;}
+form[name="frmEdit"] .input-group{width:100%;max-width:100%;}
+form[name="frmEdit"] .col-md-6{padding-left:0;padding-right:0;}
+form[name="frmEdit"] td[valign="top"] img{max-width:100%;width:auto;height:auto;}
+@media (max-width:768px){
+  form[name="frmEdit"] .form-actions .btn{margin-bottom:4px;}
+}
+</style>
+
 <!-- Table 'mqtt' edit -->
 <form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
 <fieldset>
@@ -256,7 +271,7 @@ GROUP (SELECT):
 
 [#if MODELNAME#]
 <a href="https://www.zigbee2mqtt.io/devices/[#SELECTTYPE#]">
-<img src="../templates/zigbee2mqtt/img/[#SELECTTYPE#].jpg"   class="img-rounded" height="300" width="300">
+<img src="../templates/zigbee2mqtt/img/[#SELECTTYPE#].jpg"   class="img-rounded img-responsive" style="max-width:300px;width:100%;height:auto;margin:0 auto;">
 </a>
 [#endif#]
 <!--

@@ -1,3 +1,14 @@
+<style>
+/* шапка модуля: вкладки и статус шлюзов корректно переносятся на мобильном */
+.nav-tabs{display:flex;flex-wrap:wrap;}
+.nav-tabs > li{float:none;}
+@media (max-width:768px){
+  .nav-tabs > li > a{padding:6px 9px;font-size:13px;}
+  .nav.metro > li > a{padding:6px 9px;font-size:13px;}
+}
+/* статус-блоки шлюзов (онлайн-кружок + кнопка сопряжения) не вылезают за край */
+.label{white-space:normal;}
+</style>
 <!--
 
 VIEW_MODE: [#VIEW_MODE#]

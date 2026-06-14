@@ -1,3 +1,14 @@
+<style>
+/* сервисная страница: кнопки переносятся, не вылезают за край на мобильном */
+#z2m-service .btn{margin:0 4px 6px 0;white-space:normal;}
+#z2m-service hr{margin:10px 0;}
+@media (max-width:768px){
+  #z2m-service .btn{font-size:13px;}
+  #z2m-service table td{display:block;width:100%!important;}
+  #z2m-service .form-control{margin-bottom:6px;}
+}
+</style>
+<div id="z2m-service">
 <hr>
 
    <a href="?view_mode=srv_start" class="btn btn-default" title="Start zigbee2mqtt service" ><i class="glyphicon  glyphicon-play"></i>Start </a>
@@ -72,7 +83,7 @@ Current: [#if strict="enable"#] <span class="label label-danger" ><font color="w
 
 
     
-        <table width=100%>
+        <div class="table-responsive"><table width=100%>
 <tr><td width=70%>
    
 MQTT MESSAGE PATH: <input type="text"  class="form-control"  value="[#PATH#]" name="mqttsendpath" >
@@ -90,10 +101,11 @@ VALUE:<input type="text"  class="form-control"  value="[#VALUE#]" name="mqttsend
 
 </fieldset>
 </form>     
-</div> 
+</div>
 </td></tr>
-</table>
+</table></div><!-- /.table-responsive -->
 <hr>
 
 Service:
 [#status#]
+</div><!-- /#z2m-service -->
