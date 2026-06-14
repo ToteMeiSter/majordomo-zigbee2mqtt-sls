@@ -1,4 +1,19 @@
-
+<style>
+/* Глобальная мобильная адаптация всех экранов модуля (scoped в #z2m-wrap) */
+#z2m-wrap img{max-width:100%;height:auto;}
+#z2m-wrap table{max-width:100%;}
+#z2m-wrap td,#z2m-wrap th{word-break:break-word;overflow-wrap:anywhere;}
+#z2m-wrap pre{white-space:pre-wrap;overflow-wrap:anywhere;}
+#z2m-wrap textarea{max-width:100%;box-sizing:border-box;}
+#z2m-wrap .nav-tabs{flex-wrap:wrap;}
+@media (max-width:768px){
+  #z2m-wrap .col-md-6,#z2m-wrap .col-md-5,#z2m-wrap .col-md-4,#z2m-wrap .col-md-3,#z2m-wrap .col-md-2,
+  #z2m-wrap .col-sm-6,#z2m-wrap .col-sm-4,#z2m-wrap .col-sm-3{width:100%;float:none;padding-left:6px;padding-right:6px;}
+  #z2m-wrap .form-control{font-size:14px;}
+  #z2m-wrap .panel-body{padding:8px;}
+}
+</style>
+<div id="z2m-wrap">
 [#if ACTION=""#]
 <!-- Frontend -->
  [#inc action_usual.html#]
@@ -7,3 +22,4 @@
 <!-- Control Panel -->
  [#inc action_admin.html#]
 [#endif#]
+</div>
