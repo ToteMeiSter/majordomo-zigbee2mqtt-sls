@@ -99,13 +99,19 @@ function z2mdet(param, val) {
 </ul>
 [#else TREE#]
 <style>
-#z2mprops{font-size:13px;}
-#z2mprops td,#z2mprops th{padding:5px 6px;word-break:break-word;vertical-align:top;}
-#z2mprops pre{white-space:pre-wrap;word-break:break-word;font-size:12px;padding:4px 6px;margin:0;}
+#z2mprops{font-size:13px;width:100%;table-layout:fixed;}
+#z2mprops td,#z2mprops th{padding:5px 6px;word-break:break-word;overflow-wrap:anywhere;vertical-align:top;}
+#z2mprops pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;font-size:12px;padding:4px 6px;margin:0;}
 #z2mprops textarea{max-width:100%;}
+/* мобильный: таблица должна ВЛЕЗАТЬ без горизонтального скролла */
+.table-responsive{overflow-x:visible;}
 @media (max-width:768px){
   #z2mprops{font-size:12px;}
-  #z2mprops th:nth-child(3),#z2mprops td:nth-child(3){display:none;} /* Обновлено — скрываем на узких экранах */
+  /* прячем «Обновлено» (3) и действия (4) — оставляем Название + Значение, всё помещается */
+  #z2mprops th:nth-child(3),#z2mprops td:nth-child(3),
+  #z2mprops th:nth-child(4),#z2mprops td:nth-child(4){display:none;}
+  #z2mprops th:nth-child(1),#z2mprops td:nth-child(1){width:42%;}
+  #z2mprops th:nth-child(2),#z2mprops td:nth-child(2){width:58%;}
 }
 </style>
 <div class="table-responsive">

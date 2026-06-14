@@ -5,7 +5,11 @@
 $maparray=SQLSelect("select * from zigbee2mqtt_devices  where LENGTH(TITLE)>0 and LENGTH(SELECTTYPE)>0 and SELECTTYPE<>'group'");
 
 $raws=SQLSelect("select * from zigbee2mqtt_log where TITLE='zigbee2mqtt/bridge/networkmap/raw' order by FIND desc");
-$raw = json_decode($raws[0]["MESSAGE"], true);
+$raw = isset($raws[0]["MESSAGE"]) ? json_decode($raws[0]["MESSAGE"], true) : null;
+// у SLS legacy-networkmap нет -> $raw=null -> count(null) фаталил PHP8 и ломал вкладку «Карта».
+// Карта строится новым путём (AJAX op=mapdata_sls в map.html), здесь лишь защищаемся от фатала.
+if (!is_array($raw) || !isset($raw["nodes"]) || !is_array($raw["nodes"])) { $raw = array("nodes"=>array(), "links"=>array()); }
+if (!isset($raw["links"]) || !is_array($raw["links"])) { $raw["links"] = array(); }
 
 $total = count($raw["nodes"]);
 $rn = [];

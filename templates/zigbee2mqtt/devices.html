@@ -101,17 +101,20 @@ img.card-img{max-width:80px;height:auto;}
   .panel-content{padding:5px 7px 0;}
   img.card-img{max-width:60px;}
   .panel-content .caption div{font-size:11px !important;}
-  /* кнопки в шапке плитки сжимаем, чтобы помещались в ряд */
-  /* тач: кнопки управления на плитке пальце-удобные */
-  .btn-round{width:42px;height:42px;font-size:14px;padding-left:6px;padding-right:6px;}
+  /* кнопки в ШАПКЕ плитки оставляем компактными (там мало места) */
+  .panel-heading .btn-round{width:30px;height:30px;font-size:12px;padding-left:4px;padding-right:4px;}
+  /* тач: пальце-удобными делаем только кнопки управления в ТЕЛЕ плитки */
+  .panel-content .btn-round{width:40px;height:40px;font-size:14px;padding-left:6px;padding-right:6px;}
 }
 @media (max-width:480px){
   /* совсем узкие экраны — одна плитка в ряд, читаемее */
   div[class*="col-sm-6"]{width:100%;}
 }
-/* любое тач-устройство (телефон/планшет): кнопки управления пальце-удобные >=44px */
+/* любое тач-устройство (телефон/планшет): кнопки управления в теле плитки >=44px,
+   шапка остаётся компактной чтобы кнопки не были больше неё */
 @media (pointer:coarse){
-  .btn-round{width:44px;height:44px;}
+  .panel-content .btn-round{width:44px;height:44px;}
+  .panel-heading .btn-round{width:30px;height:30px;}
   .panel-content .btn{min-height:40px;}
 }
 </style>
