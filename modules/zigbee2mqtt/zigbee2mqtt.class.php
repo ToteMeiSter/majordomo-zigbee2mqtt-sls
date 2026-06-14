@@ -3746,9 +3746,17 @@ SQLIsert('zigbee2mqtt_devices', $res2);
                     $tempmodel = str_replace('/', '-', $json[$i]->{'model'});
 //debmes('$tempmodel '.$tempmodel, 'zigbee2mqttparse');
                     $model = $tempmodel;
-                    $res44 = sqlselectone("select * from zigbee2mqtt_devices_list where zigbeeModel='$tempmodel'");
-                    if ($res44['model']) {
-                        $model = $res44['model'];
+                    // 1) точный резолв generic-моделей (TS0601 и т.п.) по manufacturerName
+                    $mfn = $json[$i]->{'manufName'};
+                    $resolved = '';
+                    if ($mfn) {
+                        $fpr = sqlselectone("select model from zigbee2mqtt_fingerprints where modelID='" . DBSafe($tempmodel) . "' and manufName='" . DBSafe($mfn) . "' and model<>'' limit 1");
+                        if (!empty($fpr['model'])) { $model = $fpr['model']; $resolved = '1'; }
+                    }
+                    // 2) иначе резолв по zigbeeModel
+                    if (!$resolved) {
+                        $res44 = sqlselectone("select model from zigbee2mqtt_devices_list where zigbeeModel='" . DBSafe($tempmodel) . "' and model<>'' limit 1");
+                        if (!empty($res44['model'])) { $model = $res44['model']; }
                     }
                 }
 
@@ -3756,6 +3764,9 @@ SQLIsert('zigbee2mqtt_devices', $res2);
 
 
                 $temp = sqlselectone("SELECT * FROM zigbee2mqtt_devices_list where model='" . $model . "'");
+
+                // ленивая подгрузка картинки плитки при первом появлении модели
+                if ($model) $this->ensureImage($model);
 
                 if ($res2['TITLE'] == 'bridge') {
                     $res2['MODEL'] = 'cc2531';
@@ -3768,9 +3779,9 @@ SQLIsert('zigbee2mqtt_devices', $res2);
 
 
 //if (!$res2['SELECTTYPE']) $res2['SELECTTYPE']=str_replace(  $json[$i]->{'model'}, '/', '-');
-                if (!$res2['SELECTTYPE']) $res2['SELECTTYPE'] = $model;
-//$res2['SELECTTYPE']=$model;
-                if (!$res2['SELECTVENDOR']) $res2['SELECTVENDOR'] = $temp['vendor'];
+                // самокоррекция: всегда обновляем тип/вендор из актуального резолва (исправляет старые неверные соответствия)
+                if ($model) $res2['SELECTTYPE'] = $model;
+                if (!empty($temp['vendor'])) $res2['SELECTVENDOR'] = $temp['vendor'];
 
                 $res2['MANUFACTURE'] = $temp['vendor'];
 //$res2['MODEL']=$json[$i]->{'model'};
@@ -4489,6 +4500,69 @@ SQLIsert('zigbee2mqtt_devices', $res2);
     }
 
 
+    /**
+     * ensureImage
+     * Лениво подгружает картинку плитки для модели, если её ещё нет локально.
+     * Файл сохраняется как img/<name>.jpg (name = то, что просит шаблон, т.е. SELECTTYPE).
+     * URL резолвится через справочник zigbee2mqtt_devices_list (zigbeeModel -> model),
+     * картинка берётся с zigbee2mqtt.io. При неудаче ставится маркер, чтобы не долбить сеть.
+     */
+    function ensureImage($name)
+    {
+        $name = trim((string)$name);
+        if ($name === '' || $name === 'group' || strpos($name, '/') !== false) return false;
+        $dir = ROOT . 'templates/' . $this->name . '/img/';
+        $file = $dir . $name . '.jpg';
+        if (is_file($file) && filesize($file) > 100) return true;
+        $marker = $dir . '.miss_' . md5($name);
+        if (is_file($marker)) return false;
+
+        // кандидаты имён для URL: резолв из справочника + само имя
+        $cands = array();
+        $r = SQLSelectOne("SELECT model FROM zigbee2mqtt_devices_list WHERE zigbeeModel='" . DBSafe($name) . "' AND model<>'' LIMIT 1");
+        if (!empty($r['model'])) $cands[] = $r['model'];
+        $cands[] = $name;
+
+        foreach ($cands as $cand) {
+            $cand = trim($cand);
+            if ($cand === '' || strpos($cand, '/') !== false) continue;
+            $url = 'https://www.zigbee2mqtt.io/images/devices/' . rawurlencode($cand) . '.jpg';
+            $data = $this->httpGetBinary($url, 6);
+            if ($data !== false && strlen($data) > 500 && substr($data, 0, 1) !== '<') {
+                @file_put_contents($file, $data);
+                if (is_file($file) && filesize($file) > 100) return true;
+            }
+        }
+        @file_put_contents($marker, time());
+        return false;
+    }
+
+    /**
+     * httpGetBinary — скачивание бинарных данных (картинки) с таймаутом, curl или fallback.
+     */
+    function httpGetBinary($url, $timeout = 6)
+    {
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'MajorDoMo-z2m');
+            $data = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($code == 200 && $data !== false) return $data;
+            return false;
+        }
+        $ctx = stream_context_create(array('http' => array('timeout' => $timeout, 'user_agent' => 'MajorDoMo-z2m'),
+            'ssl' => array('verify_peer' => false, 'verify_peer_name' => false)));
+        $data = @file_get_contents($url, false, $ctx);
+        return $data === false ? false : $data;
+    }
+
+
     function uninstall()
     {
         SQLExec('DROP TABLE IF EXISTS zigbee2mqtt');
@@ -4684,7 +4758,12 @@ mqtt - MQTT
  zigbee2mqtt_bind: ADDED datetime
  zigbee2mqtt_bind: RESULT varchar(255) NOT NULL DEFAULT ''
 
-
+ zigbee2mqtt_fingerprints: ID int(10) unsigned NOT NULL auto_increment
+ zigbee2mqtt_fingerprints: modelID varchar(255) NOT NULL DEFAULT ''
+ zigbee2mqtt_fingerprints: manufName varchar(255) NOT NULL DEFAULT ''
+ zigbee2mqtt_fingerprints: model varchar(255) NOT NULL DEFAULT ''
+ zigbee2mqtt_fingerprints: vendor varchar(255) NOT NULL DEFAULT ''
+ zigbee2mqtt_fingerprints: description varchar(300) NOT NULL DEFAULT ''
 
 
 
