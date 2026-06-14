@@ -73,7 +73,7 @@ class zigbee2mqtt extends module
         global $tab;
         global $viz;
         if (isset($id)) {
-            $this->id = $id;
+            $this->id = (int)$id;   // защита от SQLi: id устройства всегда числовой
         }
 
         if (isset($ieee)) {
@@ -1501,6 +1501,10 @@ else
      */
     function admin(&$out)
     {
+        // защита от MQTT topic-injection: gw/friendlyname участвуют в построении топиков
+        // во многих ветках device_* — санитизируем один раз на входе
+        if (isset($_GET['gw'])) $_GET['gw'] = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$_GET['gw']);
+        if (isset($_GET['friendlyname'])) $_GET['friendlyname'] = preg_replace('#[^A-Za-z0-9_\-/.]#', '', (string)$_GET['friendlyname']);
         if (isset($this->data_source) && !$_GET['data_source'] && !$_POST['data_source']) {
             $out['SET_DATASOURCE'] = 1;
         }
@@ -1861,11 +1865,12 @@ else
             $zz = explode('/', $this->config['MQTT_QUERY'])[0];
 
 
+            $creategroup = preg_replace('/[^A-Za-z0-9_\- ]/', '', (string)$creategroup); // SQL + topic injection
             if (($creategroup) && (strlen($creategroup) > 0) && ($creategroup != 'select')) {
 //   $rec['GROUP']=$creategroup;
                 $rec['GROUP'] = '';
 
-                $tmp = SQLSelectOne("SELECT * from zigbee2mqtt_grouplist where TITLE='$creategroup'");
+                $tmp = SQLSelectOne("SELECT * from zigbee2mqtt_grouplist where TITLE='" . DBSafe($creategroup) . "'");
 
                 if (!$tmp['ID']) $this->sendcommand($zz . '/bridge/config/add_group', $creategroup);
                 $this->sendcommand($zz . '/bridge/group/' . $creategroup . '/add', $dev_title);
@@ -1876,6 +1881,7 @@ else
 
 //   if (ZMQTT_DEBUG=="1" ) debmes('$selectdevicegroup='.$selectdevicegroup,'zigbee2mqtt');
 
+            $selectdevicegroup = preg_replace('/[^A-Za-z0-9_\- ]/', '', (string)$selectdevicegroup); // topic injection
             if (($selectdevicegroup) && (strlen($selectdevicegroup) > 0)) {
 //   $rec['GROUP']=$selectdevicegroup;
                 $rec['GROUP'] = '';
@@ -3100,8 +3106,8 @@ if ($property_id) {
 
 //debmes('view_mode: '.$this->view_mode.' $id:'.$id." target: ".$target." source:".$source." key:".$key, 'zigbee2mqtt');
 
-            $targettemp = SQLSelectOne('select * from zigbee2mqtt_devices where TITLE="' . $target . '"');
-            $sourcetemp = SQLSelectOne('select * from zigbee2mqtt_devices where TITLE="' . $source . '"');
+            $targettemp = SQLSelectOne('select * from zigbee2mqtt_devices where TITLE="' . DBSafe($target) . '"');
+            $sourcetemp = SQLSelectOne('select * from zigbee2mqtt_devices where TITLE="' . DBSafe($source) . '"');
 
 
             $rec = SQLSelectOne('select * from zigbee2mqtt_bind where KEYY="123"');
@@ -3118,7 +3124,8 @@ if ($property_id) {
 
             $this->getConfig();
             $zz = explode('/', $this->config['MQTT_QUERY'])[0];
-            $this->sendcommand($zz . '/bridge/bind/' . $target, $source);
+            $target_s = preg_replace('#[^A-Za-z0-9_\-/.]#', '', (string)$target);
+            $this->sendcommand($zz . '/bridge/bind/' . $target_s, $source);
 
 
             $this->redirect("?tab=bind");
@@ -3167,10 +3174,11 @@ if ($property_id) {
 
             $this->getConfig();
             $zz = explode('/', $this->config['MQTT_QUERY'])[0];
-            $this->sendcommand($zz . '/bridge/unbind/' . $target, $source);
+            $target_s = preg_replace('#[^A-Za-z0-9_\-/.]#', '', (string)$target);
+            $this->sendcommand($zz . '/bridge/unbind/' . $target_s, $source);
 
 
-            sqlexec('delete from zigbee2mqtt_bind where ID=' . $id);
+            sqlexec('delete from zigbee2mqtt_bind where ID=' . (int)$id);
 
 
             $this->redirect("?tab=bind");
@@ -4146,7 +4154,7 @@ SQLIsert('zigbee2mqtt_devices', $res2);
                 } else {
                     $ids[] = 0;
                 }
-                $data = SQLSelect("SELECT ID,VALUE FROM zigbee2mqtt WHERE ID IN (" . implode(',', $ids) . ")");
+                $data = SQLSelect("SELECT ID,VALUE FROM zigbee2mqtt WHERE ID IN (" . implode(',', array_map('intval', $ids)) . ")");
                 $total = count($data);
                 for ($i = 0; $i < $total; $i++) {
                     $data[$i]['VALUE'] = str_replace('":', '": ', $data[$i]['VALUE']);

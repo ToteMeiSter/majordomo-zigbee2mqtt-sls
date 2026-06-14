@@ -12,7 +12,7 @@
 
   $table_name='zigbee2mqtt';
 //$id=$this->id;
-$sql="SELECT * FROM $table_name WHERE ID='$id'";
+$sql="SELECT * FROM $table_name WHERE ID='".(int)$id."'";
 debmes($sql,'zigbee2mqtt');
   $rec=SQLSelectOne($sql);
 
