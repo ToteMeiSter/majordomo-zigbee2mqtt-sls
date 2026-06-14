@@ -110,7 +110,7 @@ class zigbee2mqtt extends module
     {
         global $session;
 
-        define("ZMQTT_DEBUG", "1");
+        if (!defined("ZMQTT_DEBUG")) define("ZMQTT_DEBUG", (isset($this->config["MQTT_DEBUG"]) && $this->config["MQTT_DEBUG"]) ? "1" : "0");
 
         $out = array();
         if ($this->action == 'admin') {
@@ -1574,7 +1574,7 @@ else
 
 
 //define("ZMQTT_DEBUG", $this->config['MQTT_DEBUG']);
-        define("ZMQTT_DEBUG", "1");
+        if (!defined("ZMQTT_DEBUG")) define("ZMQTT_DEBUG", (isset($this->config["MQTT_DEBUG"]) && $this->config["MQTT_DEBUG"]) ? "1" : "0");
 
 
         $out['ZMQTT_DEBUG'] = ZMQTT_DEBUG;
@@ -2732,7 +2732,7 @@ if ($property_id) {
 //$this->getConfig();
 //$zz=explode('/',$this->config['MQTT_QUERY'])[0];
 
-            $zz = $_GET['gw'];
+            $zz = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$_GET['gw']);
             $this->sendcommand($zz . '/bridge/config/permit_join', 'true');
 
 
@@ -2754,7 +2754,7 @@ if ($property_id) {
 //$this->getConfig();
 //$zz=explode('/',$this->config['MQTT_QUERY'])[0];
 
-            $zz = $_GET['gw'];
+            $zz = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$_GET['gw']);
             $this->sendcommand($zz . '/bridge/config/touchlink/factory_reset', '');
 
 
@@ -2774,7 +2774,7 @@ if ($property_id) {
         if ($this->view_mode == 'stoppairing') {
 //$this->getConfig();
 //$zz=explode('/',$this->config['MQTT_QUERY'])[0];
-            $zz = $_GET['gw'];
+            $zz = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$_GET['gw']);
             $this->sendcommand($zz . '/bridge/config/permit_join', 'false');
 //  $this->redirect("?tab=service");
             $location = $_GET['location'];
@@ -3218,6 +3218,8 @@ if ($property_id) {
             $this->config['MQTT_AUTH'] = (int)$mqtt_auth;
             $this->config['MQTT_PORT'] = (int)$mqtt_port;
             $this->config['MQTT_QUERY'] = trim($mqtt_query);
+            // защита от инъекции в eval-код SetTimeOut: только известные уровни лога
+            $z2m_logmode2 = in_array($z2m_logmode2, array('debug', 'info', 'warn', 'error'), true) ? $z2m_logmode2 : 'info';
             $this->config['Z2M_LOGMODE'] = trim($z2m_logmode2);
             $this->config['Z2M_VIEW'] = trim($z2m_view);
             $this->config['Z2M_HIST'] = trim($z2m_hist);
@@ -3342,7 +3344,7 @@ $z2m->sendcommand($zz."/bridge/config/log_level", "' . $z2m_logmode2 . '");';
         if ($this->view_mode == 'delete_dev_z2m_only') {
             $this->getConfig();
 //$zz=explode('/',$this->config['MQTT_QUERY'])[0];
-            $zz = $_GET['gw'];
+            $zz = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$_GET['gw']);
 
             $this->sendcommand($zz . '/bridge/config/remove', $this->ieee);
             $this->sendcommand($zz . '/bridge/config/force_remove', $this->ieee);
@@ -4067,7 +4069,11 @@ SQLIsert('zigbee2mqtt_devices', $res2);
             } else {
                 $sett = $settt;
             }
-            $path = $_GET['gw'] . '/' . $_GET['friendlyname'] . '/' . $sett;
+            // защита от инъекции в MQTT-топик (не дать публиковать в произвольные топики, напр. bridge/config)
+            $gw_s = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$_GET['gw']);
+            $fn_s = preg_replace('#[^A-Za-z0-9_\-/.]#', '', (string)$_GET['friendlyname']);
+            $sett = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$sett);
+            $path = $gw_s . '/' . $fn_s . '/' . $sett;
 
 
 ///////////////
@@ -4149,7 +4155,16 @@ SQLIsert('zigbee2mqtt_devices', $res2);
             }
 
             if ($op == 'viewlog') {
-                print_r(time() . ": " . $fn . "<hr>");
+                // LFI-защита: разрешаем читать только файлы внутри каталога логов модуля
+                $this->getConfig();
+                $z2mpath = isset($this->config['ZIGBEE2MQTTPATH']) ? $this->config['ZIGBEE2MQTTPATH'] : '';
+                $logbase = $z2mpath ? realpath($z2mpath . '/data/log') : false;
+                $real = (strpos((string)$fn, "\0") === false) ? realpath($fn) : false;
+                if (!$logbase || !$real || strpos($real, $logbase) !== 0) {
+                    echo 'Недопустимый путь к логу';
+                    return;
+                }
+                print_r(time() . ": " . htmlspecialchars((string)$fn) . "<hr>");
                 if (filesize($fn) > 0) {
                     $fz = filesize($fn);
                     $file = new SplFileObject($fn, 'r');
@@ -4191,11 +4206,16 @@ SQLIsert('zigbee2mqtt_devices', $res2);
 //$logurl='http://'.$this->config['SLSIP'].'/api/messages-history?action=getBuffer';
 
 
+                // SSRF/XSS-защита: разрешаем только адреса из настроенного списка SLSIP
+                $allowed_ips = array_map('trim', explode(',', (string)$this->config['SLSIP']));
+                $slsipp = trim($slsipp);
+                if (!in_array($slsipp, $allowed_ips, true)) {
+                    echo 'Адрес шлюза не разрешён';
+                    return;
+                }
                 $logurl = 'http://' . $slsipp . '/api/messages-history?action=getBuffer';
-
-
-//print_r(time().": ". $logurl.' <a href="http://'.$this->config['SLSIP'].'" target="_blank"> Open</a> <br>');
-                print_r(time() . ": " . $logurl . ' <a href="http://' . $slsipp . '" target="_blank"> Open</a> <br>');
+                $slsipp_safe = htmlspecialchars($slsipp, ENT_QUOTES);
+                print_r(time() . ": " . htmlspecialchars($logurl, ENT_QUOTES) . ' <a href="http://' . $slsipp_safe . '" target="_blank"> Open</a> <br>');
 
 
 //$a='SLS ZGW LOG......comming son';

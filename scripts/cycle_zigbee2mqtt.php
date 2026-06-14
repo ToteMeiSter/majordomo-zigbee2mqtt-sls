@@ -126,7 +126,7 @@ function procmsg($topic, $msg) {
     //$url = BASE_URL . '/ajax/mqtt.html?op=process&topic='.urlencode($topic)."&msg=".urlencode($msg);
     //getURLBackground($url);
 
-debmes($topic.":".$msg, 'z2m');
+//debmes($topic.":".$msg, 'z2m'); // отключено: спамило лог на каждое MQTT-сообщение
 
     if (!isset($topic) || !isset($msg)) return false;
 

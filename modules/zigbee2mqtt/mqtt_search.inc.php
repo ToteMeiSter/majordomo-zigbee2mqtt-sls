@@ -102,9 +102,9 @@ if (isset($_GET['vendor_id'])&&$_GET['vendor_id']<>'0') {
 $vendor_id=$_GET['vendor_id'];
 
 if ($vendor_id) 
-$vendor_name=SQLSelectOne('select * from ( SELECT @i:=@i+1 AS ID, t.* FROM (SELECT distinct VENDOR "TYPE" FROM zigbee2mqtt_devices_list, zigbee2mqtt_devices where zigbee2mqtt_devices.SELECTVENDOR=zigbee2mqtt_devices_list.vendor ) AS t, (SELECT @i:=0) AS foo ) a where a.ID='.$vendor_id)['TYPE'];
+$vendor_name=SQLSelectOne('select * from ( SELECT @i:=@i+1 AS ID, t.* FROM (SELECT distinct VENDOR "TYPE" FROM zigbee2mqtt_devices_list, zigbee2mqtt_devices where zigbee2mqtt_devices.SELECTVENDOR=zigbee2mqtt_devices_list.vendor ) AS t, (SELECT @i:=0) AS foo ) a where a.ID='.(int)$vendor_id)['TYPE'];
 
-$req_vendor=' and SELECTVENDOR="'.$vendor_name.'" '; 
+$req_vendor=' and SELECTVENDOR="'.DBSafe($vendor_name).'" '; 
 
 $out['VENDOR']=(int)$vendor_id;
 $out['VENDORNAME']=$vendor_name;
@@ -148,7 +148,7 @@ $out['VID']='0';
 
 if (isset($_GET['location'])&&$_GET['location']<>'0') { 
 $location_id=$_GET['location'];
-$req_location=' and LOCATION_ID='.$location_id; 
+$req_location=' and LOCATION_ID='.(int)$location_id; 
 $out['LOCATION_ID']=(int)$location_id;
 } else 
 {
@@ -162,8 +162,8 @@ $out['LOCATION_ID']='0';
 if (isset($_GET['type_id'])&&($_GET['type_id']<>'0')) { 
 $type_id=$_GET['type_id'];
 
-$type_name=SQLSelectOne('select * from ( SELECT @i:=@i+1 AS ID, t.* FROM (SELECT distinct TYPE "TYPE" FROM zigbee2mqtt_devices_list) AS t, (SELECT @i:=0) AS foo ) a where a.ID='.$type_id)['TYPE'];
-$req_type=' and SELECTTYPE IN (select model from zigbee2mqtt_devices_list where type="'.$type_name.'")'; 
+$type_name=SQLSelectOne('select * from ( SELECT @i:=@i+1 AS ID, t.* FROM (SELECT distinct TYPE "TYPE" FROM zigbee2mqtt_devices_list) AS t, (SELECT @i:=0) AS foo ) a where a.ID='.(int)$type_id)['TYPE'];
+$req_type=' and SELECTTYPE IN (select model from zigbee2mqtt_devices_list where type="'.DBSafe($type_name).'")'; 
    $out['ZIGBEE2MQTTDEV']=$type_id;
 } else 
 {
@@ -624,10 +624,10 @@ $vm=$this->id;
 
 //$zm=SQLSelect("SELECT * FROM zigbee2mqtt_devices_command WHERE zigbeeModel=".$this->id);
 
-//$sql0='SELECT *  FROM (select zigbee2mqtt_devices.ID DEVID, zigbee2mqtt_devices.* from zigbee2mqtt_devices where ID="'.$vm.'" ) zigbee2mqtt_devices LEFT JOIN zigbee2mqtt_devices_list ON zigbee2mqtt_devices_list.zigbeeModel like CONCAT("%",zigbee2mqtt_devices.MODEL,"%")  ';
+//$sql0='SELECT *  FROM (select zigbee2mqtt_devices.ID DEVID, zigbee2mqtt_devices.* from zigbee2mqtt_devices where ID="'.(int)$vm.'" ) zigbee2mqtt_devices LEFT JOIN zigbee2mqtt_devices_list ON zigbee2mqtt_devices_list.zigbeeModel like CONCAT("%",zigbee2mqtt_devices.MODEL,"%")  ';
 
-//  $sql0='SELECT *  FROM (select zigbee2mqtt_devices.ID DEVID, zigbee2mqtt_devices.* from zigbee2mqtt_devices where ID="'.$vm.'" ) zigbee2mqtt_devices LEFT JOIN zigbee2mqtt_devices_list ON zigbee2mqtt_devices_list.zigbeeModel like CONCAT("%",zigbee2mqtt_devices.MODEL,"%") ';
-  $sql0='SELECT *  FROM (select zigbee2mqtt_devices.ID DEVID, zigbee2mqtt_devices.* from zigbee2mqtt_devices where ID="'.$vm.'" ) zigbee2mqtt_devices LEFT JOIN zigbee2mqtt_devices_list ON zigbee2mqtt_devices_list.zigbeeModel like CONCAT("%",zigbee2mqtt_devices.MODELID,"%") ';
+//  $sql0='SELECT *  FROM (select zigbee2mqtt_devices.ID DEVID, zigbee2mqtt_devices.* from zigbee2mqtt_devices where ID="'.(int)$vm.'" ) zigbee2mqtt_devices LEFT JOIN zigbee2mqtt_devices_list ON zigbee2mqtt_devices_list.zigbeeModel like CONCAT("%",zigbee2mqtt_devices.MODEL,"%") ';
+  $sql0='SELECT *  FROM (select zigbee2mqtt_devices.ID DEVID, zigbee2mqtt_devices.* from zigbee2mqtt_devices where ID="'.(int)$vm.'" ) zigbee2mqtt_devices LEFT JOIN zigbee2mqtt_devices_list ON zigbee2mqtt_devices_list.zigbeeModel like CONCAT("%",zigbee2mqtt_devices.MODELID,"%") ';
 
 //debmes($sql0,'zigbee2mqtt');
 
@@ -746,7 +746,7 @@ $vm=$this->id;
 // echo "alert('$vm');";
 // echo "</script>";
   $out['ID']=$this->id;
-  $res=SQLSelect("SELECT * FROM zigbee2mqtt WHERE dev_id=".$this->id);
+  $res=SQLSelect("SELECT * FROM zigbee2mqtt WHERE dev_id=".(int)$this->id);
   if ($res[0]['ID']) {
    if (!$out['TREE']) {
     paging($res, 50, $out); // search result paging

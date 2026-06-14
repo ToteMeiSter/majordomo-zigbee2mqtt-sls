@@ -25,7 +25,7 @@ debmes($sql,'zigbee2mqtt');
 
 
   if ($this->mode=='creategroup') {
-echo 'creategroup';
+//echo 'creategroup'; // отладочный вывод, ломал HTML
 }
 
 
