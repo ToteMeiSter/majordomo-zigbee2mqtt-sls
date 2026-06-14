@@ -100,18 +100,21 @@ function z2mdet(param, val) {
 [#else TREE#]
 <style>
 #z2mprops{font-size:13px;width:100%;table-layout:fixed;}
-#z2mprops td,#z2mprops th{padding:5px 6px;word-break:break-word;overflow-wrap:anywhere;vertical-align:top;}
-#z2mprops pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;font-size:12px;padding:4px 6px;margin:0;}
+/* принудительный перенос ЛЮБОГО длинного текста (топики/значения), чтобы не было скролла */
+#z2mprops td,#z2mprops th{padding:5px 6px;word-break:break-all;overflow-wrap:anywhere;white-space:normal;vertical-align:top;}
+#z2mprops pre{white-space:pre-wrap !important;word-break:break-all;overflow-wrap:anywhere;font-size:12px;padding:4px 6px;margin:0;}
+#z2mprops small{word-break:break-all;overflow-wrap:anywhere;}
 #z2mprops textarea{max-width:100%;}
-/* мобильный: таблица должна ВЛЕЗАТЬ без горизонтального скролла */
+/* таблица должна ВЛЕЗАТЬ без горизонтального скролла */
 .table-responsive{overflow-x:visible;}
 @media (max-width:768px){
   #z2mprops{font-size:12px;}
-  /* прячем «Обновлено» (3) и действия (4) — оставляем Название + Значение, всё помещается */
-  #z2mprops th:nth-child(3),#z2mprops td:nth-child(3),
-  #z2mprops th:nth-child(4),#z2mprops td:nth-child(4){display:none;}
-  #z2mprops th:nth-child(1),#z2mprops td:nth-child(1){width:42%;}
-  #z2mprops th:nth-child(2),#z2mprops td:nth-child(2){width:58%;}
+  /* прячем ТОЛЬКО «Обновлено» (3); действия (карандаш/корзина) — оставляем */
+  #z2mprops th:nth-child(3),#z2mprops td:nth-child(3){display:none;}
+  #z2mprops th:nth-child(1),#z2mprops td:nth-child(1){width:40%;}
+  #z2mprops th:nth-child(2),#z2mprops td:nth-child(2){width:48%;}
+  #z2mprops th:nth-child(4),#z2mprops td:nth-child(4){width:12%;}
+  #z2mprops .btn-sm{padding:4px 6px;}
 }
 </style>
 <div class="table-responsive">
@@ -161,13 +164,13 @@ function z2mdet(param, val) {
 
 <br>
 <small><small></b>
-[#if !command_topic=""#]command_topic:    &nbsp&nbsp&nbsp [#command_topic#] <br>[#endif#]
+[#if !command_topic=""#]command_topic:      [#command_topic#] <br>[#endif#]
 
-[#if !command_value=""#]command_value:    &nbsp&nbsp&nbsp [#command_value#] <br>[#endif#]
+[#if !command_value=""#]command_value:      [#command_value#] <br>[#endif#]
 
 
 
-[#if !state_topic=""#]state_topic:    &nbsp&nbsp&nbsp [#state_topic#]/[#METRIKA#] [#endif#]
+[#if !state_topic=""#]state_topic:      [#state_topic#]/[#METRIKA#] [#endif#]
 </small></small>
 
  </td>
