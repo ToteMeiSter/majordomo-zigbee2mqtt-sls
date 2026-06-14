@@ -951,10 +951,12 @@ else
 //		    echo $cnt;
 
 
-        $sql = "SELECT * FROM zigbee2mqtt_devices WHERE IEEEADDR LIKE '%" . DBSafe($dev_title) . "%'";
+        // точное совпадение (IEEE глобально уникален); LIKE '%..%' давал коллизии,
+        // а LIKE по TITLE трактовал '_' в friendly_name как wildcard
+        $sql = "SELECT * FROM zigbee2mqtt_devices WHERE IEEEADDR='" . DBSafe($dev_title) . "'";
         $rec = SQLSelectOne($sql);
         if (!$rec['ID']) {
-            $sql = "SELECT * FROM zigbee2mqtt_devices WHERE TITLE LIKE '" . DBSafe($dev_title) . "'";
+            $sql = "SELECT * FROM zigbee2mqtt_devices WHERE TITLE='" . DBSafe($dev_title) . "'";
             $rec = SQLSelectOne($sql);
         }
 
@@ -1035,7 +1037,7 @@ else
 //   $dev_id=SQLSelectOne("SELECT * FROM zigbee2mqtt_devices WHERE TITLE LIKE '%".DBSafe($dev_title)."%'")['ID'];
 
 
-        $sql = "SELECT * FROM zigbee2mqtt_devices WHERE IEEEADDR LIKE '%" . DBSafe($dev_title) . "%'";
+        $sql = "SELECT * FROM zigbee2mqtt_devices WHERE IEEEADDR='" . DBSafe($dev_title) . "'";
 //if (ZMQTT_DEBUG=="1" ) debmes($sql, 'zigbee2mqtt');
         $dev_id = SQLSelectOne($sql)['ID'];
 
@@ -3123,7 +3125,8 @@ if ($property_id) {
             if (!$rec['ID']) SQLInsert('zigbee2mqtt_bind', $rec);
 
             $this->getConfig();
-            $zz = explode('/', $this->config['MQTT_QUERY'])[0];
+            // адресуем команду шлюзу-владельцу устройства, а не первому из MQTT_QUERY
+            $zz = !empty($sourcetemp['GW']) ? $sourcetemp['GW'] : explode('/', $this->config['MQTT_QUERY'])[0];
             $target_s = preg_replace('#[^A-Za-z0-9_\-/.]#', '', (string)$target);
             $this->sendcommand($zz . '/bridge/bind/' . $target_s, $source);
 
@@ -3173,7 +3176,8 @@ if ($property_id) {
 //debmes('view_mode: '.$this->view_mode.' $id:'.$id." target: ".$target." source:".$source, 'zigbee2mqtt');
 
             $this->getConfig();
-            $zz = explode('/', $this->config['MQTT_QUERY'])[0];
+            $src_gw = SQLSelectOne("SELECT GW FROM zigbee2mqtt_devices WHERE TITLE='" . DBSafe($source) . "'");
+            $zz = !empty($src_gw['GW']) ? $src_gw['GW'] : explode('/', $this->config['MQTT_QUERY'])[0];
             $target_s = preg_replace('#[^A-Za-z0-9_\-/.]#', '', (string)$target);
             $this->sendcommand($zz . '/bridge/unbind/' . $target_s, $source);
 
