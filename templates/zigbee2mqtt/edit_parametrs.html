@@ -87,7 +87,18 @@ function z2mdet(param, val) {
  [#end RESULT#]
 </ul>
 [#else TREE#]
-<table   class="table table-stripped">
+<style>
+#z2mprops{font-size:13px;}
+#z2mprops td,#z2mprops th{padding:5px 6px;word-break:break-word;vertical-align:top;}
+#z2mprops pre{white-space:pre-wrap;word-break:break-word;font-size:12px;padding:4px 6px;margin:0;}
+#z2mprops textarea{max-width:100%;}
+@media (max-width:768px){
+  #z2mprops{font-size:12px;}
+  #z2mprops th:nth-child(3),#z2mprops td:nth-child(3){display:none;} /* Обновлено — скрываем на узких экранах */
+}
+</style>
+<div class="table-responsive">
+<table id="z2mprops"   class="table table-stripped">
 <thead>
 <tr>
  <th>
@@ -104,9 +115,6 @@ function z2mdet(param, val) {
 
  </th>
 
- <th>
- <#LANG_VALUE#>
- </th>
 <th>&nbsp;</th>
 </tr>
 </thead>
@@ -213,6 +221,7 @@ function z2mdet(param, val) {
 [#end RESULT#]
 </tbody>
 </table>
+</div>
 [#endif TREE#]
 <!-- / search results (list) -->
 <!-- paging -->
