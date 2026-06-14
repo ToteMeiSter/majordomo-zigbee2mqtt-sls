@@ -2,6 +2,17 @@
 
 
 [#if CHANGEABLE<>""#]
+<style>
+/* тач-оптимизация управления (телефон/планшет) */
+.z2mctl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.z2mctl-lbl{min-width:110px;font-size:15px;}
+.z2mctl-val{font-size:15px;min-width:54px;display:inline-block;padding:6px 10px;}
+.z2mctl-btn{min-width:96px;min-height:48px;font-size:17px;padding:10px 18px;margin:2px;}
+@media (max-width:480px){
+  .z2mctl-lbl{min-width:100%;margin-bottom:2px;}
+  .z2mctl-btn{flex:1 1 42%;min-width:130px;}
+}
+</style>
 <div class="panel panel-primary" style="margin-bottom:14px">
   <div class="panel-heading">Управление</div>
   <div class="panel-body">

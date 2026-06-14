@@ -1702,11 +1702,11 @@ else
                     $v = isset($ms[$kk]) ? trim($ms[$kk]) : '';
                     $vup = strtoupper($v);
                     $cls = ($vup == 'ON') ? 'label-success' : (($vup == 'OFF') ? 'label-default' : 'label-info');
-                    $chtml .= '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0">';
-                    $chtml .= '<b style="min-width:96px">' . $lbl . '</b>';
-                    $chtml .= '<span id="z2mval_' . $kk . '" class="label ' . $cls . '" style="font-size:14px;min-width:46px;display:inline-block">' . ($v === '' ? '—' : htmlspecialchars($v)) . '</span>';
-                    $chtml .= '<button type="button" onclick="z2mdet(\'' . $kk . '\',\'ON\')" class="btn btn-success">Вкл</button>';
-                    $chtml .= '<button type="button" onclick="z2mdet(\'' . $kk . '\',\'OFF\')" class="btn btn-danger">Выкл</button>';
+                    $chtml .= '<div class="z2mctl-row">';
+                    $chtml .= '<b class="z2mctl-lbl">' . $lbl . '</b>';
+                    $chtml .= '<span id="z2mval_' . $kk . '" class="label ' . $cls . ' z2mctl-val">' . ($v === '' ? '—' : htmlspecialchars($v)) . '</span>';
+                    $chtml .= '<button type="button" onclick="z2mdet(\'' . $kk . '\',\'ON\')" class="btn btn-success z2mctl-btn">Вкл</button>';
+                    $chtml .= '<button type="button" onclick="z2mdet(\'' . $kk . '\',\'OFF\')" class="btn btn-danger z2mctl-btn">Выкл</button>';
                     $chtml .= '</div>';
                 }
                 $out['CONTROLHTML'] = $chtml;

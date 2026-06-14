@@ -102,11 +102,17 @@ img.card-img{max-width:80px;height:auto;}
   img.card-img{max-width:60px;}
   .panel-content .caption div{font-size:11px !important;}
   /* кнопки в шапке плитки сжимаем, чтобы помещались в ряд */
-  .btn-round{width:30px;height:30px;padding-left:4px;padding-right:4px;}
+  /* тач: кнопки управления на плитке пальце-удобные */
+  .btn-round{width:42px;height:42px;font-size:14px;padding-left:6px;padding-right:6px;}
 }
 @media (max-width:480px){
   /* совсем узкие экраны — одна плитка в ряд, читаемее */
   div[class*="col-sm-6"]{width:100%;}
+}
+/* любое тач-устройство (телефон/планшет): кнопки управления пальце-удобные >=44px */
+@media (pointer:coarse){
+  .btn-round{width:44px;height:44px;}
+  .panel-content .btn{min-height:40px;}
 }
 </style>
 
