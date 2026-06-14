@@ -830,7 +830,14 @@ $out['BIND'] =  $res;
 $out['SOURCE'] =  $res;
 
 
-$res=array("TITLE"=>"Single");
+// #2: типы действий (single/double/triple/hold). Прим.: стандартный zigbee-bind
+// привязывает кластер вкл/выкл клавиши к цели независимо от типа нажатия;
+// double/triple/hold для разной реакции — это сценарии/автоматизация, не сам bind.
+$res=array();
+$res[]=array("TITLE"=>"single");
+$res[]=array("TITLE"=>"double");
+$res[]=array("TITLE"=>"triple");
+$res[]=array("TITLE"=>"hold");
 $out['KEY'] =  $res;
 
 
@@ -839,10 +846,16 @@ $out['KEY'] =  $res;
 
 $out['TARGET'] =  $res;
 
+// #2: какая именно клавиша/эндпоинт источника (для многоклавишных)
 $res=array();
 $res[]=array("TITLE"=>"Single");
-$res[]=array("TITLE"=>"Left")  ;
-$res[]=array("TITLE"=>"Right") ;
+$res[]=array("TITLE"=>"Left");
+$res[]=array("TITLE"=>"Center");
+$res[]=array("TITLE"=>"Right");
+$res[]=array("TITLE"=>"l1");
+$res[]=array("TITLE"=>"l2");
+$res[]=array("TITLE"=>"l3");
+$res[]=array("TITLE"=>"l4");
 
 $out['ENDPOINT'] =  $res;
 
