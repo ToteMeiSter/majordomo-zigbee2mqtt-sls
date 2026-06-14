@@ -1542,23 +1542,24 @@ else
 //if $permit['VALUE']=
             $out['gwstatus'][$i]['PERMITNAME'] = $zz;
             $out['gwstatus'][$i]['PERMITSTATUS'] = $permit['VALUE'];
-//    $path = trim($query_list[$i]);
-//    $topics[$path] = array("qos" => 0, "function" => "procmsg");
-            $seen = SQLSelectOne("select * from zigbee2mqtt_log where TITLE like '%$zz%' order by FIND DESC  limit 1  ");
-            $out['gwstatus'][$i]['SEEN'] = $seen['FIND'];
 
-            if ((time() - strtotime($seen['FIND']) < 3600)) {
-                $out['gwstatus'][$i]['SEEN2'] = "1";
-            } else {
-                $out['gwstatus'][$i]['SEEN2'] = "0";
-            }
+            // Онлайн-статус шлюза берём из <gw>/bridge/state (online/offline) + свежесть UPDATED.
+            // SLS не публикует permit_join и не ведёт zigbee2mqtt_log, поэтому старый способ давал красный.
+            $bstate = SQLSelectOne("select VALUE, UPDATED from zigbee2mqtt where TITLE='$zz/bridge/state' limit 1");
+            $st_val = isset($bstate['VALUE']) ? trim($bstate['VALUE']) : '';
+            // свежесть берём по самому новому из bridge/state и bridge/config/* (SLS чаще шлёт config)
+            $fresh = SQLSelectOne("select MAX(UPDATED) UPD from zigbee2mqtt where TITLE LIKE '$zz/bridge/%'");
+            $st_upd = (isset($fresh['UPD']) && $fresh['UPD']) ? $fresh['UPD'] : (isset($bstate['UPDATED']) ? $bstate['UPDATED'] : '');
+            $out['gwstatus'][$i]['SEEN'] = $st_upd;
 
+            $online = $st_upd && ((time() - strtotime($st_upd)) < 7200) && ($st_val != 'offline');
+            $out['gwstatus'][$i]['SEEN2'] = $online ? "1" : "0";
 
-            if ($seen['MESSAGE'] == 'offline') {
-                $out['gwstatus'][$i]['SEEN2'] = "0";
-                $out['gwstatus'][$i]['PERMIT'] = 'false';
-
-            }
+            // Доп. сведения из bridge/config (если шлюз их публикует — SLS публикует)
+            $ver = SQLSelectOne("select VALUE from zigbee2mqtt where TITLE='$zz/bridge/config/Version' limit 1");
+            $gip = SQLSelectOne("select VALUE from zigbee2mqtt where TITLE='$zz/bridge/config/IP' limit 1");
+            $out['gwstatus'][$i]['VERSION'] = isset($ver['VALUE']) ? $ver['VALUE'] : '';
+            $out['gwstatus'][$i]['IP'] = isset($gip['VALUE']) ? $gip['VALUE'] : '';
 
         }
 
