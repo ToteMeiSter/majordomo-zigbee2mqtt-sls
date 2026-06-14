@@ -3997,6 +3997,13 @@ SQLIsert('zigbee2mqtt_devices', $res2);
     function usual(&$out)
     {
 
+        // AJAX-эндпоинт данных карты сети (ajax/zigbee2mqtt.html?op=mapdata_sls) -> JSON nodes/edges
+        if (isset($_GET['op']) && $_GET['op'] == 'mapdata_sls') {
+            $this->getConfig();
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($this->get_map_sls());
+            exit;
+        }
 
         $device = $_GET['device'];
         $command = $_GET['command'];
