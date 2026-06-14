@@ -39,19 +39,39 @@ DATASOURCE: [#DATA_SOURCE#]
    [#begin gwstatus#]
 
 [#if SEEN2==1#]
-<span class="label label-success" title="Шлюз [#PERMITNAME#] онлайн [#SEEN#]">статус [#PERMITNAME#]</span>
+<div style="display:inline-flex;align-items:center;gap:7px;margin:4px 12px 4px 0;vertical-align:middle"><span title="Онлайн [#SEEN#]" style="display:inline-block;width:13px;height:13px;border-radius:50%;background:#27ae60;box-shadow:0 0 3px #27ae60"></span> <b>[#PERMITNAME#]</b>
 	[#else#]
-		<span class="label label-danger" title="Приложение [#PERMITNAME#] не работает [#SEEN#]">статус [#PERMITNAME#]</span>
+		<div style="display:inline-flex;align-items:center;gap:7px;margin:4px 12px 4px 0;vertical-align:middle"><span title="Не в сети [#SEEN#]" style="display:inline-block;width:13px;height:13px;border-radius:50%;background:#c0392b;box-shadow:0 0 3px #c0392b"></span> <b>[#PERMITNAME#]</b>
 	[#endif#]
 
 [#if PERMITSTATUS=="1"#]
-<a href="?view_mode=stoppairing&gw=[#PERMITNAME#]" title="Идёт сопряжение — нажмите, чтобы остановить"><span class="label label-success"><font color="white">&#9209; Остановить сопряжение [#PERMITNAME#]</font></span></a>
+<a href="#" id="pair_[#PERMITNAME#]" data-on="1" onclick="return z2mPairing('[#PERMITNAME#]')" class="label label-success" title="Сопряжение [#PERMITNAME#]"><font color="white">&#9209; Остановить</font></a></div>
 	[#else#]
-<a href="?view_mode=startpairing&gw=[#PERMITNAME#]" title="Сопряжение закрыто — нажмите, чтобы открыть для новых устройств"><span class="label label-danger"><font color="white">&#10133; Сопряжение [#PERMITNAME#]</font></span></a>
+<a href="#" id="pair_[#PERMITNAME#]" data-on="0" onclick="return z2mPairing('[#PERMITNAME#]')" class="label label-danger" title="Сопряжение [#PERMITNAME#]"><font color="white">&#10133; Сопряжение</font></a></div>
 	[#endif#]
 
 
    [#end gwstatus#]
+<script type="text/javascript">
+var Z2M_ROOT='<#ROOTHTML#>';
+function z2mSetPair(btn,on,pending){
+  btn.setAttribute('data-on',on?'1':'0');
+  btn.className='label '+(on?'label-success':'label-danger');
+  btn.innerHTML='<font color="white">'+(on?'&#9209; Остановить':'&#10133; Сопряжение')+(pending?' &#8230;':'')+'</font>';
+}
+function z2mPairing(gw){
+  var btn=document.getElementById('pair_'+gw); if(!btn) return false;
+  var turnOn=(btn.getAttribute('data-on')!=='1');
+  z2mSetPair(btn,turnOn,true);
+  fetch(Z2M_ROOT+'ajax/zigbee2mqtt.html?op=pairing&gw='+encodeURIComponent(gw)+'&val='+(turnOn?'on':'off'),{credentials:'same-origin'});
+  setTimeout(function(){
+    fetch(Z2M_ROOT+'ajax/zigbee2mqtt.html?op=permitstate&gw='+encodeURIComponent(gw),{credentials:'same-origin'})
+      .then(function(r){return r.json();}).then(function(d){ z2mSetPair(btn,d.permit?1:0,false); })
+      .catch(function(){ z2mSetPair(btn,turnOn?1:0,false); });
+  },30000);
+  return false;
+}
+</script>
 
 
 

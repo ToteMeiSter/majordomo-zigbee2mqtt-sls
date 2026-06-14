@@ -4015,6 +4015,26 @@ SQLIsert('zigbee2mqtt_devices', $res2);
             exit;
         }
 
+        // AJAX: пуск/остановка сопряжения шлюза (без перезагрузки страницы)
+        if (isset($_GET['op']) && $_GET['op'] == 'pairing') {
+            $gw = preg_replace('/[^A-Za-z0-9_\-]/', '', $_GET['gw']);
+            $val = ($_GET['val'] == 'on') ? 'true' : 'false';
+            if ($gw != '') $this->sendcommand($gw . '/bridge/config/permit_join', $val);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array('ok' => 1));
+            exit;
+        }
+
+        // AJAX: текущее состояние сопряжения шлюза (для проверки через ~30с)
+        if (isset($_GET['op']) && $_GET['op'] == 'permitstate') {
+            $gw = preg_replace('/[^A-Za-z0-9_\-]/', '', $_GET['gw']);
+            $r = SQLSelectOne("select VALUE from zigbee2mqtt where TITLE='" . DBSafe($gw) . "/bridge/config/ZPermitJoin' limit 1");
+            $pj = isset($r['VALUE']) ? trim($r['VALUE']) : '';
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array('permit' => (is_numeric($pj) && (int)$pj > 0) ? 1 : 0));
+            exit;
+        }
+
         $device = $_GET['device'];
         $command = $_GET['command'];
 
