@@ -376,6 +376,26 @@ $basa=SQLSelectOne($sql);
 
 
 
+ // === Универсальный фолбэк управляемости по реально опубликованным state-свойствам ===
+ // (надёжно для SLS и любых устройств, когда тип/модель не дали CHANGEABLE)
+ if (empty($res[$i]['CHANGEABLE']) && !empty($res[$i]['DEVID'])) {
+     $mrows = SQLSelect("SELECT METRIKA FROM zigbee2mqtt WHERE DEV_ID='" . DBSafe($res[$i]['DEVID']) . "' AND METRIKA LIKE 'state%'");
+     $ms = array();
+     $tot = count($mrows);
+     for ($k = 0; $k < $tot; $k++) { $ms[$mrows[$k]['METRIKA']] = 1; }
+     if (isset($ms['state_left']) && isset($ms['state_center']) && isset($ms['state_right'])) {
+         $res[$i]['CHANGEABLE'] = 'LCR';                 // 3 клавиши: лево/центр/право
+     } elseif (isset($ms['state_left']) || isset($ms['state_right'])) {
+         $res[$i]['CHANGEABLE'] = '2';                   // лево/право
+     } elseif (isset($ms['state_l3']) || isset($ms['state_l4'])) {
+         $res[$i]['CHANGEABLE'] = 'R4';                  // 3-4 канала (l1..l4)
+     } elseif (isset($ms['state_l1']) || isset($ms['state_l2'])) {
+         $res[$i]['CHANGEABLE'] = '3';                   // 2 канала (l1/l2)
+     } elseif (isset($ms['state'])) {
+         $res[$i]['CHANGEABLE'] = '1';                   // одиночное реле/розетка/лампа
+     }
+ }
+
  if ($basa['model']=='ZLED-TUNE9')      $res[$i]['COLOR_TEMP']='1';
 
 

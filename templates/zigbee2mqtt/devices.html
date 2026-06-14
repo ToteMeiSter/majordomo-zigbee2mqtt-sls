@@ -346,6 +346,19 @@
 
 
 
+[#if CHANGEABLE="LCR"#]
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_left','ON','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Левая: включить"><span class="glyphicon glyphicon-ok"></span></a>
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_left','OFF','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Левая: выключить"><span class="glyphicon glyphicon-remove"></span></a>
+|
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_center','ON','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Центр: включить"><span class="glyphicon glyphicon-ok"></span></a>
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_center','OFF','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Центр: выключить"><span class="glyphicon glyphicon-remove"></span></a>
+|
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_right','ON','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Правая: включить"><span class="glyphicon glyphicon-ok"></span></a>
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_right','OFF','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Правая: выключить"><span class="glyphicon glyphicon-remove"></span></a>
+&nbsp;
+[#endif#]
+
+
 [#if CHANGEABLE="3"#]
 <!--
    <a href="?view_mode=device_on_l1&id=[#DEVID#]&tab=&location=<#LOCATION_ID#>&type_id=<#ZIGBEE2MQTTDEV#>&vendor_id=<#VENDOR#>&vid_id=<#VID#>&group_list_id=<#group_list_id#>&friendlyname=[#IEEEADDR#]&gw=[#GW#]"  class="btn btn-default btn-round" title="Включить"> 
