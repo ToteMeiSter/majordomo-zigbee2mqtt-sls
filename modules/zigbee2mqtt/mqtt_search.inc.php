@@ -391,6 +391,8 @@ $basa=SQLSelectOne($sql);
          $res[$i]['CHANGEABLE'] = 'R4';                  // 3-4 канала (l1..l4)
      } elseif (isset($ms['state_l1']) || isset($ms['state_l2'])) {
          $res[$i]['CHANGEABLE'] = '3';                   // 2 канала (l1/l2)
+     } elseif (isset($ms['state_1']) || isset($ms['state_2'])) {
+         $res[$i]['CHANGEABLE'] = 'NUM';                 // каналы state_1..state_4
      } elseif (isset($ms['state'])) {
          $res[$i]['CHANGEABLE'] = '1';                   // одиночное реле/розетка/лампа
      }

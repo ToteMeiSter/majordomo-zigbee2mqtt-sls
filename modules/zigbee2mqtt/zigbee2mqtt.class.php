@@ -1674,6 +1674,18 @@ else
             $out['SWBUILDID'] = $res['SWBUILDID'];
             $out['HISTORY'] = $res['HISTORY'];
 
+            // CHANGEABLE для страницы устройства — по реальным state-свойствам (для блока управления в view_det)
+            $out['CHANGEABLE'] = '';
+            $mrows = SQLSelect("SELECT METRIKA FROM zigbee2mqtt WHERE DEV_ID='" . DBSafe($res['ID']) . "' AND METRIKA LIKE 'state%'");
+            $ms = array();
+            $tot = count($mrows);
+            for ($k = 0; $k < $tot; $k++) { $ms[$mrows[$k]['METRIKA']] = 1; }
+            if (isset($ms['state_left']) && isset($ms['state_center']) && isset($ms['state_right'])) $out['CHANGEABLE'] = 'LCR';
+            elseif (isset($ms['state_left']) || isset($ms['state_right'])) $out['CHANGEABLE'] = '2';
+            elseif (isset($ms['state_l3']) || isset($ms['state_l4'])) $out['CHANGEABLE'] = 'R4';
+            elseif (isset($ms['state_l1']) || isset($ms['state_l2'])) $out['CHANGEABLE'] = '3';
+            elseif (isset($ms['state_1']) || isset($ms['state_2'])) $out['CHANGEABLE'] = 'NUM';
+            elseif (isset($ms['state'])) $out['CHANGEABLE'] = '1';
 
             $res1 = SQLSelectOne("SELECT * FROM zigbee2mqtt_devices_list where model='" . $res['SELECTTYPE'] . "'");
             $out['MODELNAME'] = $res1['model'];

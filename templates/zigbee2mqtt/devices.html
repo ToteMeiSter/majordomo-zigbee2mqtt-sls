@@ -414,9 +414,19 @@
 [#endif#]
 
 
+[#if CHANGEABLE="NUM"#]
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_1','ON','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Клавиша 1: включить"><span class="glyphicon glyphicon-ok"></span></a>
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_1','OFF','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Клавиша 1: выключить"><span class="glyphicon glyphicon-remove"></span></a>
+|
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_2','ON','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Клавиша 2: включить"><span class="glyphicon glyphicon-ok"></span></a>
+   <a href="#" onclick="return switch_z2m([#DEVID#],'state_2','OFF','[#IEEEADDR#]','[#GW#]','','result[#ID#]');" class="btn btn-default btn-round" title="Клавиша 2: выключить"><span class="glyphicon glyphicon-remove"></span></a>
+&nbsp;
+[#endif#]
+
+
 [#if CHANGEABLE="R3"#]
 
-   <a href="#"  onclick="return switch_z2m([#DEVID#],'pump_1','toggle','[#IEEEADDR#]','[#GW#]', '','result[#ID#]');" class="btn btn-default btn-round" title="Переключить реле 1">1</a> 
+   <a href="#"  onclick="return switch_z2m([#DEVID#],'pump_1','toggle','[#IEEEADDR#]','[#GW#]', '','result[#ID#]');" class="btn btn-default btn-round" title="Переключить реле 1">1</a>
    <a href="#"  onclick="return switch_z2m([#DEVID#],'pump_2','toggle','[#IEEEADDR#]','[#GW#]', '','result[#ID#]');" class="btn btn-default btn-round" title="Переключить реле 2">2</a> 
    <a href="#"  onclick="return switch_z2m([#DEVID#],'pump_3','toggle','[#IEEEADDR#]','[#GW#]', '','result[#ID#]');" class="btn btn-default btn-round" title="Переключить реле 3">3</a> 
 &nbsp;

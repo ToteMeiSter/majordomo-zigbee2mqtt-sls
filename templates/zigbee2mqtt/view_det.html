@@ -3,6 +3,50 @@
 <form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
 <fieldset>
 
+[#if CHANGEABLE<>""#]
+<div class="panel panel-primary" style="margin-bottom:14px">
+  <div class="panel-heading">Управление</div>
+  <div class="panel-body" style="text-align:center">
+    <div id="z2mdetresult" style="color:#888;font-size:12px;min-height:16px;margin-bottom:6px"></div>
+    [#if CHANGEABLE="1"#]
+      <button type="button" onclick="z2mdet('state','ON')" class="btn btn-success btn-lg">Включить</button>
+      <button type="button" onclick="z2mdet('state','OFF')" class="btn btn-danger btn-lg">Выключить</button>
+    [#endif#]
+    [#if CHANGEABLE="2"#]
+      <div style="margin:5px 0">Левая&nbsp; <button type="button" onclick="z2mdet('state_left','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_left','OFF')" class="btn btn-danger">Выкл</button></div>
+      <div style="margin:5px 0">Правая&nbsp; <button type="button" onclick="z2mdet('state_right','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_right','OFF')" class="btn btn-danger">Выкл</button></div>
+    [#endif#]
+    [#if CHANGEABLE="LCR"#]
+      <div style="margin:5px 0">Левая&nbsp; <button type="button" onclick="z2mdet('state_left','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_left','OFF')" class="btn btn-danger">Выкл</button></div>
+      <div style="margin:5px 0">Центр.&nbsp; <button type="button" onclick="z2mdet('state_center','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_center','OFF')" class="btn btn-danger">Выкл</button></div>
+      <div style="margin:5px 0">Правая&nbsp; <button type="button" onclick="z2mdet('state_right','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_right','OFF')" class="btn btn-danger">Выкл</button></div>
+    [#endif#]
+    [#if CHANGEABLE="3"#]
+      <div style="margin:5px 0">Клавиша 1&nbsp; <button type="button" onclick="z2mdet('state_l1','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_l1','OFF')" class="btn btn-danger">Выкл</button></div>
+      <div style="margin:5px 0">Клавиша 2&nbsp; <button type="button" onclick="z2mdet('state_l2','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_l2','OFF')" class="btn btn-danger">Выкл</button></div>
+    [#endif#]
+    [#if CHANGEABLE="R4"#]
+      <button type="button" onclick="z2mdet('state_l1','toggle')" class="btn btn-default btn-lg">1</button>
+      <button type="button" onclick="z2mdet('state_l2','toggle')" class="btn btn-default btn-lg">2</button>
+      <button type="button" onclick="z2mdet('state_l3','toggle')" class="btn btn-default btn-lg">3</button>
+      <button type="button" onclick="z2mdet('state_l4','toggle')" class="btn btn-default btn-lg">4</button>
+    [#endif#]
+    [#if CHANGEABLE="NUM"#]
+      <div style="margin:5px 0">Клавиша 1&nbsp; <button type="button" onclick="z2mdet('state_1','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_1','OFF')" class="btn btn-danger">Выкл</button></div>
+      <div style="margin:5px 0">Клавиша 2&nbsp; <button type="button" onclick="z2mdet('state_2','ON')" class="btn btn-success">Вкл</button> <button type="button" onclick="z2mdet('state_2','OFF')" class="btn btn-danger">Выкл</button></div>
+    [#endif#]
+  </div>
+</div>
+<script type="text/javascript">
+function z2mdet(param, val) {
+  var u = '<#ROOTHTML#>ajax/zigbee2mqtt.html?device=[#ID#]&command=' + encodeURIComponent(param) + '&value=' + val + '&friendlyname=[#IEEEADDR#]&gw=[#GW#]&settt=';
+  var r = document.getElementById('z2mdetresult'); r.innerHTML = '...';
+  fetch(u, { credentials: 'same-origin' }).then(function(x){return x.text();}).then(function(){ r.innerHTML = 'команда отправлена'; }).catch(function(){ r.innerHTML = 'ошибка'; });
+  return false;
+}
+</script>
+[#endif#]
+
 <!-- TITLE (varchar) -->
 
 <table border=0 width=100% ><tr><td width=60%>
