@@ -4923,7 +4923,12 @@ mqtt - MQTT
 EOD;
         parent::dbInstall($data);
 
-        require(DIR_MODULES . $this->name . '/database1.inc.php');
+        // Полная база моделей (zigbeeModel/model/vendor/type/description) — ~7.5к строк,
+        // сгенерирована из zigbee-herdsman-converters. Заменяет старый database1.inc.php.
+        require(DIR_MODULES . $this->name . '/data_devices_list.inc.php');
+        // fingerprint-сопоставления (modelID+manufacturerName -> model) для generic-моделей (TS0601 и др.)
+        require(DIR_MODULES . $this->name . '/data_fingerprints.inc.php');
+        // команды/HA-discovery сопоставления
         require(DIR_MODULES . $this->name . '/database2.inc.php');
 
     }

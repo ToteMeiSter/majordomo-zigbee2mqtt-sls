@@ -5,13 +5,19 @@
 		<a data-toggle="collapse" data-parent="#accordion" href="#sms_help">Информация</a>
 		</div>
 		<div class="panel-body collapse" id="sms_help">
-		Модуль для работы с устройствами zigbee с использованием USB стиков сc2531/сс2530/сс2538 и программного шлюза 
-<a href="https://www.zigbee2mqtt.io/" target="_blank">zigbee2mqtt</a>. Также поддерживается работа аппаратного шлюза <a href="https://slsys.github.io/Gateway/README_rus.html" target="_blank">SLS Zigbee gateway</a><br>
-
-			
-			</br>     </br>
-
-	
+		<p>Модуль интеграции <b>Zigbee-устройств</b> в MajorDoMo через MQTT. Работает с аппаратными шлюзами
+		<a href="https://slsys.io" target="_blank">SLS Zigbee Gateway</a>, а также с программным
+		<a href="https://www.zigbee2mqtt.io/" target="_blank">zigbee2mqtt</a> (USB-координаторы CC2652/EFR32 и др.).</p>
+		<p><b>Возможности:</b></p>
+		<ul>
+		<li>Автообнаружение устройств и их параметров из MQTT-топиков шлюза.</li>
+		<li>Управление: вкл/выкл (одно- и многоклавишные — лево/центр/право, l1…l8), яркость, цвет, уставки.</li>
+		<li>Поддержка нескольких шлюзов одновременно.</li>
+		<li>Расширенная база моделей (резолв по <code>zigbeeModel</code> и <code>fingerprint</code>/manufacturerName — корректные тип и картинка даже для generic-моделей вроде TS0601).</li>
+		<li>Ленивая подгрузка картинок плиток с zigbee2mqtt.io при первом появлении устройства.</li>
+		<li>Карта сети по данным шлюза, привязки (bind) любое↔любое, группы, журнал.</li>
+		</ul>
+		<p><b>Настройка:</b> на вкладке параметров укажите MQTT-брокер и путь подписки (для SLS — базовые топики шлюзов, например <code>gw1/#,gw2/#</code>), в поле SLS IP — адреса шлюзов (для карты сети).</p>
 		</div> </div> </div>
 
 
