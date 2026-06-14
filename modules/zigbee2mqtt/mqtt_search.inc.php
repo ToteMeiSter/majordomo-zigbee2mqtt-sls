@@ -821,17 +821,19 @@ $zigbee2mqttpath=$this->config['ZIGBEE2MQTTPATH'];
 $out['BIND'] =  $res;
 
 
- $res=SQLSelect('SELECT * FROM zigbee2mqtt_devices WHERE SELECTTYPE IN (select model from zigbee2mqtt_devices_list where type="REMOTE")'); 
+ // #7: источником привязки может быть ЛЮБОЕ устройство (не только remote) —
+ // в Zigbee любой узел с исходящими кластерами может управлять другим.
+ $res=SQLSelect('SELECT * FROM zigbee2mqtt_devices WHERE TITLE<>"bridge" AND SELECTTYPE<>"cc2531" ORDER BY SELECTVENDOR, TITLE');
 
 $out['SOURCE'] =  $res;
 
 
-// $res=SQLSelect('SELECT * FROM zigbee2mqtt_devices WHERE SELECTTYPE IN (select model from zigbee2mqtt_devices_list where type="REMOTE")'); 
 $res=array("TITLE"=>"Single");
 $out['KEY'] =  $res;
 
 
- $res=SQLSelect('SELECT * FROM zigbee2mqtt_devices WHERE SELECTTYPE IN (select model from zigbee2mqtt_devices_list where type="BULB")'); 
+ // #7: целью привязки тоже может быть любое устройство (и группы)
+ $res=SQLSelect('SELECT * FROM zigbee2mqtt_devices WHERE TITLE<>"bridge" AND SELECTTYPE<>"cc2531" ORDER BY SELECTVENDOR, TITLE');
 
 $out['TARGET'] =  $res;
 
