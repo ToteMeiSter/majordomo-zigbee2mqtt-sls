@@ -3087,7 +3087,14 @@ if ($property_id) {
 
 
         if ($this->view_mode == 'updatedb') {
-
+            // деструктивно (пересоздаёт справочник). Требуем явное подтверждение, чтобы
+            // не выполнялось одним кликом по ссылке/CSRF.
+            if (!isset($_REQUEST['confirm']) || $_REQUEST['confirm'] != 'yes') {
+                echo '<div style="padding:14px">Пересоздать базу моделей? Текущий справочник будет перезалит. '
+                    . '<a class="btn btn-danger" href="?tab=service&view_mode=updatedb&confirm=yes">Да, пересоздать</a> '
+                    . '<a class="btn btn-default" href="?tab=service">Отмена</a></div>';
+                return;
+            }
             $this->updatedb();
             $this->redirect("?tab=service");
         }
@@ -3154,11 +3161,12 @@ if ($property_id) {
 
         if ($this->view_mode == 'clearlog') {
 
+            // $ieee раньше был не определён -> like "%%" удалял ВЕСЬ лог
+            if (!empty($this->ieee)) {
+                sqlexec('delete from zigbee2mqtt_log where TITLE like "%' . DBSafe($this->ieee) . '%"');
+            }
 
-            sqlexec('delete from zigbee2mqtt_log where TITLE like "%' . $ieee . '%"');
-
-
-            $this->redirect("?view_mode=&id=" . $id . "&tab=log2");
+            $this->redirect("?view_mode=&id=" . (int)$this->id . "&tab=log2");
 
 
         }

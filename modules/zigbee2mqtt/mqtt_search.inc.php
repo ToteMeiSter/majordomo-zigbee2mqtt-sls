@@ -62,8 +62,11 @@
 
 
 
-if (!isset($_GET['group_list_id'])) { 
-$req_vid=' and SELECTVENDOR <>"group" '; 
+// инициализация всех фильтров (иначе PHP notice undefined при сборке SQL)
+$req_vid = ''; $req_group = ''; $req_vendor = ''; $req_type = ''; $req_location = '';
+
+if (!isset($_GET['group_list_id'])) {
+$req_vid=' and SELECTVENDOR <>"group" ';
 }
 
 
