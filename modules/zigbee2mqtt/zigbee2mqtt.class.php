@@ -1674,18 +1674,37 @@ else
             $out['SWBUILDID'] = $res['SWBUILDID'];
             $out['HISTORY'] = $res['HISTORY'];
 
-            // CHANGEABLE для страницы устройства — по реальным state-свойствам (для блока управления в view_det)
+            // Управление страницы устройства: строки "метка — текущее значение — Вкл/Выкл"
+            // по реальным state-свойствам (значение с id для мгновенного обновления по клику)
             $out['CHANGEABLE'] = '';
-            $mrows = SQLSelect("SELECT METRIKA FROM zigbee2mqtt WHERE DEV_ID='" . DBSafe($res['ID']) . "' AND METRIKA LIKE 'state%'");
+            $out['CONTROLHTML'] = '';
+            $mrows = SQLSelect("SELECT METRIKA, VALUE FROM zigbee2mqtt WHERE DEV_ID='" . DBSafe($res['ID']) . "' AND METRIKA LIKE 'state%'");
             $ms = array();
             $tot = count($mrows);
-            for ($k = 0; $k < $tot; $k++) { $ms[$mrows[$k]['METRIKA']] = 1; }
-            if (isset($ms['state_left']) && isset($ms['state_center']) && isset($ms['state_right'])) $out['CHANGEABLE'] = 'LCR';
-            elseif (isset($ms['state_left']) || isset($ms['state_right'])) $out['CHANGEABLE'] = '2';
-            elseif (isset($ms['state_l3']) || isset($ms['state_l4'])) $out['CHANGEABLE'] = 'R4';
-            elseif (isset($ms['state_l1']) || isset($ms['state_l2'])) $out['CHANGEABLE'] = '3';
-            elseif (isset($ms['state_1']) || isset($ms['state_2'])) $out['CHANGEABLE'] = 'NUM';
-            elseif (isset($ms['state'])) $out['CHANGEABLE'] = '1';
+            for ($k = 0; $k < $tot; $k++) { $ms[$mrows[$k]['METRIKA']] = $mrows[$k]['VALUE']; }
+            $ctrlkeys = array();
+            if (isset($ms['state'])) $ctrlkeys['state'] = 'Состояние';
+            if (isset($ms['state_left'])) $ctrlkeys['state_left'] = 'Левая';
+            if (isset($ms['state_center'])) $ctrlkeys['state_center'] = 'Центральная';
+            if (isset($ms['state_right'])) $ctrlkeys['state_right'] = 'Правая';
+            for ($n = 1; $n <= 8; $n++) if (isset($ms['state_l' . $n])) $ctrlkeys['state_l' . $n] = 'Клавиша ' . $n;
+            for ($n = 1; $n <= 8; $n++) if (isset($ms['state_' . $n])) $ctrlkeys['state_' . $n] = 'Клавиша ' . $n;
+            if (!empty($ctrlkeys)) {
+                $out['CHANGEABLE'] = '1';
+                $chtml = '';
+                foreach ($ctrlkeys as $kk => $lbl) {
+                    $v = isset($ms[$kk]) ? trim($ms[$kk]) : '';
+                    $vup = strtoupper($v);
+                    $cls = ($vup == 'ON') ? 'label-success' : (($vup == 'OFF') ? 'label-default' : 'label-info');
+                    $chtml .= '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0">';
+                    $chtml .= '<b style="min-width:96px">' . $lbl . '</b>';
+                    $chtml .= '<span id="z2mval_' . $kk . '" class="label ' . $cls . '" style="font-size:14px;min-width:46px;display:inline-block">' . ($v === '' ? '—' : htmlspecialchars($v)) . '</span>';
+                    $chtml .= '<button type="button" onclick="z2mdet(\'' . $kk . '\',\'ON\')" class="btn btn-success">Вкл</button>';
+                    $chtml .= '<button type="button" onclick="z2mdet(\'' . $kk . '\',\'OFF\')" class="btn btn-danger">Выкл</button>';
+                    $chtml .= '</div>';
+                }
+                $out['CONTROLHTML'] = $chtml;
+            }
 
             $res1 = SQLSelectOne("SELECT * FROM zigbee2mqtt_devices_list where model='" . $res['SELECTTYPE'] . "'");
             $out['MODELNAME'] = $res1['model'];
