@@ -1772,6 +1772,12 @@ else
 
         }
 
+        if ($this->view_mode == 'mapdata_sls') {
+            header('Content-Type: application/json');
+            echo json_encode($this->get_map_sls());
+            exit;
+        }
+
         if ($this->view_mode == 'update_device') {
 //$vm=$this->id;
 // echo "<script type='text/javascript'>";
@@ -4560,6 +4566,152 @@ SQLIsert('zigbee2mqtt_devices', $res2);
             'ssl' => array('verify_peer' => false, 'verify_peer_name' => false)));
         $data = @file_get_contents($url, false, $ctx);
         return $data === false ? false : $data;
+    }
+
+    /**
+     * httpGetJson — GET JSON с таймаутом, curl с fallback на file_get_contents.
+     * Возвращает декодированный массив (json_decode true) или false при ошибке.
+     */
+    function httpGetJson($url, $timeout = 6)
+    {
+        $raw = false;
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'MajorDoMo-z2m');
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+            $data = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($code == 200 && $data !== false) $raw = $data;
+        } else {
+            $ctx = stream_context_create(array(
+                'http' => array('timeout' => $timeout, 'user_agent' => 'MajorDoMo-z2m', 'header' => "Accept: application/json\r\n"),
+                'ssl' => array('verify_peer' => false, 'verify_peer_name' => false)
+            ));
+            $data = @file_get_contents($url, false, $ctx);
+            if ($data !== false) $raw = $data;
+        }
+
+        if ($raw === false || $raw === '') return false;
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) return false;
+        return $decoded;
+    }
+
+    /**
+     * get_map_sls — собирает топологию сети Zigbee со всех шлюзов SLS
+     * (REST: GET http://<IP>/api/zigbee/devices) и возвращает массив для фронтенда:
+     *   array('nodes' => array(...), 'edges' => array(...))
+     * node:  id(0xIEEE), label(friendly_name|ieee), type, lqi, gw(IP)
+     * edge:  from(0xIEEE устройства), to(0xIEEE родителя), lqi
+     */
+    function get_map_sls()
+    {
+        $result = array('nodes' => array(), 'edges' => array());
+
+        if (empty($this->config['SLSIP'])) {
+            return $result;
+        }
+
+        $slslist = explode(',', $this->config['SLSIP']);
+
+        // кэш LQI по IEEEADDR из локальной БД (запрашиваем лениво, по необходимости)
+        $lqi_cache = array();
+        $nodes = array();              // id => node (общий по всем шлюзам, дедуп по ieee)
+        $edges = array();
+        $edge_seen = array();
+
+        // ВАЖНО: nwkAddr уникален только в пределах СВОЕЙ сети (шлюза),
+        // поэтому карту nwk->ieee и рёбра строим отдельно для каждого шлюза.
+        foreach ($slslist as $ip) {
+            $ip = trim($ip);
+            if ($ip === '') continue;
+
+            $url = 'http://' . $ip . '/api/zigbee/devices';
+            $devices = $this->httpGetJson($url, 6);
+            if (!is_array($devices)) continue;
+
+            // координатор шлюза: SLS REST не возвращает его в списке устройств,
+            // добавляем синтетический узел (nwk 0x0000) и якорим к нему сеть.
+            $coord_id = 'coord_' . $ip;
+            if (!isset($nodes[$coord_id])) {
+                $nodes[$coord_id] = array('id' => $coord_id, 'label' => 'SLS ' . $ip, 'type' => 'Coordinator', 'lqi' => null, 'gw' => $ip);
+            }
+
+            $nwk2ieee = array('0x0000' => $coord_id, '0x0' => $coord_id, '0' => $coord_id);
+            $gw_devices = array();
+
+            foreach ($devices as $dev) {
+                if (!is_array($dev)) continue;
+                $ieee = isset($dev['ieeeAddr']) ? trim($dev['ieeeAddr']) : '';
+                if ($ieee === '') continue;
+                $nwk = isset($dev['nwkAddr']) ? trim($dev['nwkAddr']) : '';
+                $type = isset($dev['type']) ? $dev['type'] : 'EndDevice';
+                $fname = isset($dev['friendly_name']) ? trim($dev['friendly_name']) : '';
+                $label = ($fname !== '') ? $fname : $ieee;
+
+                // lqi: из REST если есть, иначе из локальной БД
+                $lqi = null;
+                if (isset($dev['lqi']) && is_numeric($dev['lqi'])) {
+                    $lqi = (int)$dev['lqi'];
+                } else {
+                    if (!array_key_exists($ieee, $lqi_cache)) {
+                        $row = SQLSelectOne("SELECT LQI FROM zigbee2mqtt_devices WHERE IEEEADDR='" . DBSafe($ieee) . "' LIMIT 1");
+                        $lqi_cache[$ieee] = (is_array($row) && isset($row['LQI']) && $row['LQI'] !== '') ? (int)$row['LQI'] : null;
+                    }
+                    $lqi = $lqi_cache[$ieee];
+                }
+
+                if ($nwk !== '' && !isset($nwk2ieee[$nwk])) {
+                    $nwk2ieee[$nwk] = $ieee;
+                }
+
+                if (!isset($nodes[$ieee])) {
+                    $nodes[$ieee] = array('id' => $ieee, 'label' => $label, 'type' => $type, 'lqi' => $lqi, 'gw' => $ip);
+                } else if ($nodes[$ieee]['lqi'] === null && $lqi !== null) {
+                    $nodes[$ieee]['lqi'] = $lqi;
+                }
+
+                $rtg = array();
+                if (isset($dev['Rtg']) && is_array($dev['Rtg'])) {
+                    foreach ($dev['Rtg'] as $p) {
+                        $p = trim($p);
+                        if ($p !== '') $rtg[] = $p;
+                    }
+                }
+                $gw_devices[] = array('ieee' => $ieee, 'type' => $type, 'rtg' => $rtg, 'lqi' => $lqi);
+            }
+
+            // рёбра в пределах этого шлюза
+            foreach ($gw_devices as $rd) {
+                $ieee = $rd['ieee'];
+                $parents = array();
+                foreach ($rd['rtg'] as $pnwk) {
+                    if (isset($nwk2ieee[$pnwk]) && $nwk2ieee[$pnwk] !== $ieee) {
+                        $parents[] = $nwk2ieee[$pnwk];
+                    }
+                }
+                // нет маршрута -> цепляем к координатору своего шлюза
+                if (empty($parents)) {
+                    $parents[] = $coord_id;
+                }
+                foreach ($parents as $pieee) {
+                    $key = $ip . '|' . $ieee . '|' . $pieee;
+                    if (isset($edge_seen[$key])) continue;
+                    $edge_seen[$key] = true;
+                    $edges[] = array('from' => $ieee, 'to' => $pieee, 'lqi' => $rd['lqi']);
+                }
+            }
+        }
+
+        $result['nodes'] = array_values($nodes);
+        $result['edges'] = $edges;
+        return $result;
     }
 
 

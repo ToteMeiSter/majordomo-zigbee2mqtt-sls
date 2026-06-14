@@ -1,76 +1,304 @@
-<div>
-<table>
-<tr><td>
-   <a href="?view_mode=get_map" class="btn btn-default" title="Get network map" ><i class="glyphicon glyphicon-dashboard"></i> Update network map</a>
-</td><td>
+<style>
+  #z2m-map-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  #z2m-map-toolbar .btn {
+    white-space: nowrap;
+  }
+  #z2m-map-status {
+    font-size: 12px;
+    color: #888;
+    margin-left: auto;
+  }
+  #z2m_network {
+    height: 75vh;
+    min-height: 400px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    background: #fafafa;
+    position: relative;
+  }
+  #z2m-map-legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #555;
+    align-items: center;
+  }
+  .z2m-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .z2m-legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 2px solid rgba(0,0,0,0.2);
+  }
+  .z2m-legend-dot.coordinator { background: #e74c3c; border-radius: 3px; }
+  .z2m-legend-dot.router     { background: #2980b9; }
+  .z2m-legend-dot.enddevice  { background: #27ae60; border-radius: 2px; }
+  .z2m-legend-line {
+    display: inline-block;
+    width: 28px;
+    height: 4px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  #z2m-map-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(250,250,250,0.85);
+    font-size: 16px;
+    color: #666;
+    z-index: 10;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  #z2m-map-overlay.hidden { display: none; }
+</style>
 
+<script type="text/javascript" src="/templates/zigbee2mqtt/vis-4.21.0/dist/vis.js"></script>
+<link href="/templates/zigbee2mqtt/vis-4.21.0/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
 
-   <a href="?view_mode=get_map_graph" class="btn btn-default" title="Get graphviz (https://www.graphviz.org/)" ><i class="glyphicon glyphicon-dashboard"></i> Get graphviz</a>
-
-</td><td>
-
-     <div style="{height: 10px;width: 100px;}">
-<!-- <p {height: 10px;width: 100px;}> [#GRAPH#] </p> -->
-<!--     <input type="text"   placeholder="<#LANG_OW_CITYNAME#>" title="https://www.graphviz.org/" value="[#GRAPH#]"  disabled> -->
-
-
-     </div>
-
-
-
-
-</td><td>
-
-
-   <a href="?view_mode=get_map_graph_req" class="btn btn-default" title="Get graphviz map (http://www.webgraphviz.com)" ><i class="glyphicon glyphicon-dashboard"></i> Get graphviz map</a>
-
-</tr>
-</td>
-
-<table>
-
+<div id="z2m-map-toolbar">
+  <button class="btn btn-default" id="z2m-refresh-btn" onclick="z2mMapLoad()">
+    <i class="glyphicon glyphicon-refresh"></i> Обновить
+  </button>
+  <span id="z2m-map-status">Загрузка...</span>
 </div>
 
+<div style="position:relative;">
+  <div id="z2m_network"></div>
+  <div id="z2m-map-overlay">Загрузка карты сети...</div>
+</div>
 
-<p id="target_anchor2">Symmetric structure but asymmetric layout: </p>
+<div id="z2m-map-legend">
+  <strong style="margin-right:4px;">Узлы:</strong>
+  <span class="z2m-legend-item"><span class="z2m-legend-dot coordinator"></span> Координатор</span>
+  <span class="z2m-legend-item"><span class="z2m-legend-dot router"></span> Роутер</span>
+  <span class="z2m-legend-item"><span class="z2m-legend-dot enddevice"></span> EndDevice</span>
+  <span style="margin-left:8px;"><strong>Линки LQI:</strong></span>
+  <span class="z2m-legend-item"><span class="z2m-legend-line" style="background:#27ae60;height:4px;"></span> Сильный (≥170)</span>
+  <span class="z2m-legend-item"><span class="z2m-legend-line" style="background:#f39c12;height:2px;"></span> Средний (85–169)</span>
+  <span class="z2m-legend-item"><span class="z2m-legend-line" style="background:#e74c3c;height:1px;"></span> Слабый (&lt;85)</span>
+</div>
 
-<script src="http://www.webgraphviz.com/viz.js" charset="utf-8"></script>;
-<script>
-   var dot_source = 'digraph { rankdir="LR"; bgcolor="transparent"; a -> b -> c -> e; b -> d -> e -> a; }';
-    var elem = document.getElementById("target_anchor2");
-    elem.innerHTML = Viz(dot_source, "svg");
-</script>
+<script type="text/javascript">
+(function () {
+  'use strict';
 
+  var z2mNetwork = null;
+  var z2mNodes   = null;
+  var z2mEdges   = null;
 
-<!--[#map_array#]
-<br>
-[#EDGES#]
--->
-<!doctype html>
-<html>
-<head>
-  <title>Network | Shapes</title>
+  function lqiColor(lqi) {
+    var v = lqi == null ? 0 : parseInt(lqi, 10);
+    if (v >= 170) return '#27ae60'; // зелёный
+    if (v >= 85)  return '#f39c12'; // оранжевый
+    return '#e74c3c';               // красный
+  }
 
-  <style type="text/css">
-    #mynetwork {
-      width: 1000px;
-      height: 800px;
-      border: 1px solid lightgray;
+  function lqiWidth(lqi) {
+    var v = lqi == null ? 0 : parseInt(lqi, 10);
+    if (v >= 170) return 3;
+    if (v >= 85)  return 1.5;
+    return 0.8;
+  }
+
+  function nodeOptions(raw) {
+    var type = (raw.type || '').toLowerCase();
+    var lqi  = raw.lqi != null ? raw.lqi : '—';
+    var gw   = raw.gw  ? ' | GW: ' + raw.gw : '';
+    var title = '<b>' + (raw.label || raw.id) + '</b><br>'
+              + 'Тип: ' + (raw.type || '?') + '<br>'
+              + 'LQI: ' + lqi + gw;
+
+    if (type === 'coordinator') {
+      return {
+        shape: 'box',
+        size: 28,
+        color: { background: '#e74c3c', border: '#922b21', highlight: { background: '#f1948a', border: '#922b21' } },
+        font:  { color: '#fff', bold: true, size: 14 },
+        borderWidth: 3,
+        title: title
+      };
     }
-  </style>
+    if (type === 'router') {
+      return {
+        shape: 'dot',
+        size: 16,
+        color: { background: '#2980b9', border: '#1a5276', highlight: { background: '#7fb3d3', border: '#1a5276' } },
+        font:  { color: '#1a252f', size: 12 },
+        borderWidth: 2,
+        title: title
+      };
+    }
+    // EndDevice (и любой другой)
+    return {
+      shape: 'square',
+      size: 10,
+      color: { background: '#27ae60', border: '#1e8449', highlight: { background: '#82e0aa', border: '#1e8449' } },
+      font:  { color: '#1a252f', size: 11 },
+      borderWidth: 1,
+      title: title
+    };
+  }
 
-  <script type="text/javascript" src="/templates/zigbee2mqtt/vis-4.21.0/dist/vis.js"></script>
-  <link href="/templates/zigbee2mqtt/vis-network.min.css" rel="stylesheet" type="text/css" />
+  function buildVisNodes(rawNodes) {
+    return rawNodes.map(function (n) {
+      var opts = nodeOptions(n);
+      return Object.assign({
+        id:    n.id,
+        label: n.label || n.id
+      }, opts);
+    });
+  }
 
+  function buildVisEdges(rawEdges) {
+    return rawEdges.map(function (e, idx) {
+      var lqi   = e.lqi != null ? parseInt(e.lqi, 10) : 0;
+      var color = lqiColor(lqi);
+      var width = lqiWidth(lqi);
+      return {
+        id:     idx,
+        from:   e.from,
+        to:     e.to,
+        width:  width,
+        color:  { color: color, highlight: color, hover: color },
+        title:  'LQI: ' + (e.lqi != null ? e.lqi : '—'),
+        smooth: { type: 'dynamic' }
+      };
+    });
+  }
 
+  function setStatus(msg) {
+    var el = document.getElementById('z2m-map-status');
+    if (el) el.textContent = msg;
+  }
 
+  function setOverlay(msg) {
+    var el = document.getElementById('z2m-map-overlay');
+    if (!el) return;
+    if (msg) {
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  }
 
-        
-<!--[#SCRIPT#] -->
+  function renderNetwork(visNodes, visEdges) {
+    var container = document.getElementById('z2m_network');
+    if (!container) return;
 
-</html>
+    var options = {
+      physics: {
+        enabled: true,
+        stabilization: { iterations: 200, fit: true },
+        barnesHut: {
+          gravitationalConstant: -8000,
+          centralGravity: 0.3,
+          springLength: 120,
+          springConstant: 0.04,
+          damping: 0.09
+        }
+      },
+      interaction: {
+        hover: true,
+        tooltipDelay: 150,
+        navigationButtons: true,
+        keyboard: true
+      },
+      edges: {
+        arrows: { to: { enabled: false } },
+        scaling: { min: 0.5, max: 5 }
+      },
+      nodes: {
+        scaling: { min: 8, max: 28 }
+      },
+      layout: {
+        improvedLayout: true
+      }
+    };
 
+    if (z2mNetwork) {
+      // обновляем существующую сеть без пересоздания DOM
+      z2mNodes.clear();
+      z2mEdges.clear();
+      z2mNodes.add(visNodes);
+      z2mEdges.add(visEdges);
+      z2mNetwork.setOptions({ physics: { enabled: true } });
+      z2mNetwork.stabilize(150);
+    } else {
+      z2mNodes = new vis.DataSet(visNodes);
+      z2mEdges = new vis.DataSet(visEdges);
+      z2mNetwork = new vis.Network(container, { nodes: z2mNodes, edges: z2mEdges }, options);
 
+      z2mNetwork.on('stabilizationIterationsDone', function () {
+        z2mNetwork.setOptions({ physics: { enabled: false } });
+        setOverlay(null);
+      });
+    }
+  }
 
+  window.z2mMapLoad = function () {
+    var btn = document.getElementById('z2m-refresh-btn');
+    if (btn) btn.disabled = true;
+    setStatus('Загрузка...');
+    setOverlay('Загрузка данных сети...');
 
+    var url = '?data_source=&view_mode=mapdata_sls&tab=map&_ts=' + Date.now();
 
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      })
+      .then(function (data) {
+        var rawNodes = Array.isArray(data.nodes) ? data.nodes : [];
+        var rawEdges = Array.isArray(data.edges) ? data.edges : [];
+
+        if (rawNodes.length === 0) {
+          setStatus('Нет данных');
+          setOverlay('Данные отсутствуют — нажмите «Обновить»');
+          if (btn) btn.disabled = false;
+          return;
+        }
+
+        var visNodes = buildVisNodes(rawNodes);
+        var visEdges = buildVisEdges(rawEdges);
+
+        renderNetwork(visNodes, visEdges);
+
+        var ts = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        setStatus('Обновлено в ' + ts + ' МСК · Узлов: ' + rawNodes.length + ' · Линков: ' + rawEdges.length);
+        if (btn) btn.disabled = false;
+      })
+      .catch(function (err) {
+        setStatus('Ошибка: ' + err.message);
+        setOverlay('Ошибка загрузки: ' + err.message);
+        if (btn) btn.disabled = false;
+        console.error('[z2m-map] fetch error', err);
+      });
+  };
+
+  // автозапуск при загрузке страницы
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.z2mMapLoad);
+  } else {
+    window.z2mMapLoad();
+  }
+}());
+</script>
