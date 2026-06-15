@@ -2,18 +2,15 @@
 
 
 <style>
-/* круглая кнопка-питание прямо в строке свойства: зелёная = ON, красная = OFF */
-.z2mpwr{border:none;border-radius:50%;width:44px;height:44px;min-width:44px;font-size:22px;line-height:44px;color:#fff;cursor:pointer;margin:0;padding:0;text-align:center;display:inline-block;}
-.z2mpwr-on{background:#5cb85c;}
-.z2mpwr-off{background:#d9534f;}
-.z2mpwr:active{opacity:.7;}
+/* кнопка-питание прямо в строке свойства (размер как «карандаш»): зелёная = ON, красная = OFF */
+.z2mpwr{margin-right:6px;}
 </style>
 <script type="text/javascript">
 var z2mDevId='[#ID#]', z2mIeee='[#IEEEADDR#]', z2mGw='[#GW#]';
 function z2mPower(btn, param){
-  var on = btn.className.indexOf('z2mpwr-on') >= 0;   // текущее состояние
+  var on = btn.className.indexOf('btn-success') >= 0;  // текущее состояние
   var nv = on ? 'OFF' : 'ON';                          // целевое значение
-  btn.className = 'z2mpwr ' + (on ? 'z2mpwr-off' : 'z2mpwr-on');  // инверсия сразу
+  btn.className = 'btn btn-sm z2mpwr ' + (on ? 'btn-danger' : 'btn-success');  // инверсия сразу
   btn.title = on ? 'Включить' : 'Выключить';
   var u = '<#ROOTHTML#>ajax/zigbee2mqtt.html?device=' + z2mDevId + '&command=' + encodeURIComponent(param) + '&value=' + nv + '&friendlyname=' + encodeURIComponent(z2mIeee) + '&gw=' + encodeURIComponent(z2mGw) + '&settt=';
   fetch(u, { credentials: 'same-origin' }).catch(function(){});
@@ -29,9 +26,9 @@ document.addEventListener('DOMContentLoaded', function(){
     var p = s.getAttribute('data-metrika');
     var b = document.createElement('button');
     b.type = 'button';
-    b.className = 'z2mpwr ' + (v==='ON' ? 'z2mpwr-on' : 'z2mpwr-off');
+    b.className = 'btn btn-sm z2mpwr ' + (v==='ON' ? 'btn-success' : 'btn-danger');
     b.title = v==='ON' ? 'Выключить' : 'Включить';
-    b.innerHTML = '&#9211;';
+    b.innerHTML = '<i class="glyphicon glyphicon-off"></i>';
     b.onclick = (function(param){ return function(){ return z2mPower(this, param); }; })(p);
     s.appendChild(b);
   }
