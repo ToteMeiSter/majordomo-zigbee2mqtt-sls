@@ -12,6 +12,12 @@ function z2mPower(btn, param){
   var nv = on ? 'OFF' : 'ON';                          // целевое значение
   btn.className = 'btn btn-sm z2mpwr ' + (on ? 'btn-danger' : 'btn-success');  // инверсия сразу
   btn.title = on ? 'Включить' : 'Выключить';
+  // сразу обновляем текст значения в этой же строке (не дожидаясь перезагрузки)
+  var td = btn.closest ? btn.closest('td') : btn.parentNode.parentNode;
+  if (td){
+    var vv = td.querySelector('.mqtt_value') || td.querySelector('pre');
+    if (vv){ vv.textContent = nv; }
+  }
   var u = '<#ROOTHTML#>ajax/zigbee2mqtt.html?device=' + z2mDevId + '&command=' + encodeURIComponent(param) + '&value=' + nv + '&friendlyname=' + encodeURIComponent(z2mIeee) + '&gw=' + encodeURIComponent(z2mGw) + '&settt=';
   fetch(u, { credentials: 'same-origin' }).catch(function(){});
   return false;
