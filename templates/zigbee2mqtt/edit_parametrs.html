@@ -19,6 +19,23 @@ function z2mPower(btn, param){
   fetch(u, { credentials: 'same-origin' }).catch(function(){});
   return false;
 }
+// строим кнопку-питание только у свойств со значением ON/OFF
+document.addEventListener('DOMContentLoaded', function(){
+  var slots = document.querySelectorAll('.z2mpwr-slot');
+  for (var i=0;i<slots.length;i++){
+    var s = slots[i];
+    var v = (s.getAttribute('data-val')||'').trim().toUpperCase();
+    if (v!=='ON' && v!=='OFF') continue;
+    var p = s.getAttribute('data-metrika');
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'z2mpwr ' + (v==='ON' ? 'z2mpwr-on' : 'z2mpwr-off');
+    b.title = v==='ON' ? 'Выключить' : 'Включить';
+    b.innerHTML = '&#9211;';
+    b.onclick = (function(param){ return function(){ return z2mPower(this, param); }; })(p);
+    s.appendChild(b);
+  }
+});
 </script>
 
 <a href="https://www.zigbee2mqtt.io/devices/[#SELECTTYPE#]" target="_blank">
@@ -173,10 +190,9 @@ function z2mPower(btn, param){
 
 <td>
 
-[#if !command_topic=""#]
+<span class="z2mpwr-slot" data-val="[#VALUE#]" data-metrika="[#METRIKA#]" style="float:right"></span>
 
-[#if VALUE="ON"#]<button type="button" class="z2mpwr z2mpwr-on" style="float:right" onclick="return z2mPower(this,'[#METRIKA#]')" title="Выключить">&#9211;</button>[#endif#]
-[#if VALUE="OFF"#]<button type="button" class="z2mpwr z2mpwr-off" style="float:right" onclick="return z2mPower(this,'[#METRIKA#]')" title="Включить">&#9211;</button>[#endif#]
+[#if !command_topic=""#]
 
        <div id="prop[#ID#]_current" onClick="$('#prop[#ID#]_current').hide();$('#prop[#ID#]_edit').show();">
 
