@@ -1908,6 +1908,11 @@ else
             }
 
 
+            // авто-создание простых устройств MajorDoMo при сохранении карточки (если выбрано помещение)
+            if ((int)$rec['LOCATION_ID'] > 0) {
+                $this->autoCreateSimpleDevices((int)$rec['ID']);
+            }
+
             $this->redirect("?view_mode=view_mqtt&id=" . $this->id . "&tab=edit_device");
         }
 
@@ -4304,6 +4309,16 @@ SQLIsert('zigbee2mqtt_devices', $res2);
     function edit_mqtt(&$out, $id)
     {
         require(DIR_MODULES . $this->name . '/mqtt_edit.inc.php');
+    }
+
+    /**
+     * Авто-создание простых устройств MajorDoMo из zigbee-устройств.
+     * $dev_id==0 → все устройства. Логика в autocreate.inc.php (область метода).
+     */
+    function autoCreateSimpleDevices($dev_id = 0)
+    {
+        include(dirname(__FILE__) . '/autocreate.inc.php');
+        return isset($log) ? $log : array();
     }
 
     function propertySetHandle($object, $property, $value)
