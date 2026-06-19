@@ -71,8 +71,10 @@ $RELAY_SUFFIX = array(
     'state_1' => ' 1', 'state_2' => ' 2',
 );
 $STATE_KEYS = array('state', 'state_left', 'state_right', 'state_center', 'state_l1', 'state_l2', 'state_l3', 'state_l4', 'state_1', 'state_2');
-// доп. измерения -> имя свойства (read-only, вешаются на главный объект)
-$EXTRA_MEAS = array('pressure' => 'pressure', 'battery' => 'battery', 'linkquality' => 'linkquality',
+// доп. измерения -> имя свойства (read-only, вешаются на главный объект).
+// Давление НЕ здесь: оно выносится в отдельное устройство sensor_pressure
+// (модуль devices не показывает свободные свойства, только типовые) — см. ниже.
+$EXTRA_MEAS = array('battery' => 'battery', 'linkquality' => 'linkquality',
     'voltage' => 'voltage', 'current' => 'current', 'power' => 'power', 'energy' => 'energy');
 
 $dm = new devices();
@@ -163,6 +165,13 @@ foreach ($devs as $dev) {
     }
 
     if (!$primary) continue;
+
+    // Давление — отдельным видимым устройством sensor_pressure (если оно не уже главный объект).
+    // Свободное свойство модуль devices на плитке/в свойствах не показывает, поэтому своя карточка.
+    if (isset($byM['pressure']) && trim($byM['pressure']['LINKED_OBJECT']) == '') {
+        $pobj = z2m_obj($dm, 'sensor_pressure', $fname . '_Давление', $loc, $log, $img_rel);
+        if ($pobj) z2m_bind($this->name, $byM['pressure'], $pobj, 'value', 0, $log);
+    }
 
     // доп. измерения на главный объект (read-only); уже привязанные строки z2m_bind пропустит
     foreach ($EXTRA_MEAS as $mk => $prop) {
